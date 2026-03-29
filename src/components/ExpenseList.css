@@ -1,92 +1,255 @@
+/* ============================================================
+   ExpenseList.css
+   支払い一覧コンポーネント専用スタイル。
+
+   カード構造：
+     .expense-top     … タイトル + 支払者（左）／ 金額 + 1人あたり（右）
+     .expense-bottom  … 請求先バッジ（左）／ 編集・削除（右）
+   ============================================================ */
+
+/* ============================================================
+   1. 空の状態
+   ============================================================ */
+.el-empty {
+  text-align: center;
+  padding: 32px 20px;
+}
+
+.el-empty p {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+}
+
+.el-empty-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: 8px;
+}
+
+/* ============================================================
+   2. 支払いカード全体
+   ============================================================ */
 .expense-item {
   cursor: default;
+  /* .card の padding を上書きして余白を調整 */
+  padding: var(--spacing-md) 18px;
 }
-.expense-item:active {
-  opacity: 0.8;
-}
+
+/* ============================================================
+   3. カード上段
+      左列：タイトル + 支払者行
+      右列：合計金額 + 1人あたり金額
+   ============================================================ */
 .expense-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
+
+/* ── 左列 */
+.expense-top-left {
+  flex: 1;
+  min-width: 0;  /* text-overflow を有効にするため */
+}
+
 .expense-title {
-  font-size: 15px;
+  font-size: var(--font-size-md);
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.expense-amount {
-  font-size: 17px;
+
+/* 支払者行（イニシャルアバター + 名前） */
+.expense-payer-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* イニシャルアバター（カード内用・小サイズ） */
+.expense-payer-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
   font-weight: 700;
-  color: #333;
+  flex-shrink: 0;
 }
+
+.expense-payer {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* ── 右列 */
+.expense-top-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* 合計金額：大きめに表示して視認性を上げる */
+.expense-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* 1人あたり金額：合計の直下に小さく */
+.expense-per {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* ============================================================
+   4. カード下段
+      セパレーターラインで上段と視覚的に分離。
+      左：請求先バッジ / 右：編集・削除ボタン
+   ============================================================ */
 .expense-bottom {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #f0ede8;
   gap: 8px;
-}
-.expense-payer {
-  font-size: 12px;
-  color: #666;
-  flex: 1;
-}
-.badge-all {
-  background: rgba(14, 168, 122, 0.12);
-  color: #0ea87a;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.badge-custom {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.expense-per {
-  font-size: 12px;
-  color: #666;
-}
-.expense-per strong {
-  color: #0ea87a;
-  font-weight: 600;
 }
 
-/* ── 編集・削除ボタン ── */
+/* 請求先バッジ（全員 / N人） */
+.expense-split-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.expense-split-badge--all {
+  background: rgba(14, 168, 122, 0.12);
+  color: var(--color-primary);
+}
+
+.expense-split-badge--custom {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+}
+
+/* ============================================================
+   5. 編集・削除アクションボタン
+   ============================================================ */
 .expense-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #F0EDE8;
+  gap: 6px;
+  flex-shrink: 0;
 }
+
+/* 編集ボタン */
 .expense-edit-btn {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
-  border: 1.5px solid #E7E5E0;
-  background: #F7F5F0;
-  color: #57534E;
+  border: 1px solid var(--color-border);
+  background: #f7f5f0;
+  color: var(--color-text-secondary);
   font-family: inherit;
-  transition: all .15s;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
-.expense-edit-btn:hover { background: #EEECE8; }
+
+.expense-edit-btn:hover:not(:disabled) {
+  background: #eeece8;
+  color: var(--color-text-primary);
+}
+
+.expense-edit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 削除ボタン（赤系でデストラクティブ操作であることを明示） */
 .expense-delete-btn {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 600;
   cursor: pointer;
-  border: 1.5px solid rgba(239,68,68,.25);
-  background: rgba(239,68,68,.06);
-  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  background: rgba(239, 68, 68, 0.07);
+  color: var(--color-danger);
   font-family: inherit;
-  transition: all .15s;
+  white-space: nowrap;
+  transition: background var(--transition-fast);
 }
-.expense-delete-btn:hover { background: rgba(239,68,68,.12); }
-.expense-delete-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.expense-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.expense-delete-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   6. 合計カード
+      背景色をつけて支払いカードと視覚的に区別する
+   ============================================================ */
+.el-total {
+  background: #f7f5f0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) 18px !important;
+  margin-top: 4px;
+}
+
+.el-total-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.el-total-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.el-total-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   7. 編集モーダル内ボタン
+   ============================================================ */
+.el-modal-save-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: var(--font-size-md);
+  margin-top: 8px;
+}
+
+.el-modal-cancel-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-md);
+  margin-top: 8px;
+}

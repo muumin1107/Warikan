@@ -1,6 +1,42 @@
+/* ============================================================
+   NicknamePage.css
+   初回ログイン時のニックネーム設定画面専用スタイル。
+
+   デザインは AuthPage と統一（Stone 系ウォームカラー）。
+   ローカル変数は AuthPage.css と同じ命名体系で定義し、
+   将来的に共通化しやすいよう揃えている。
+   ============================================================ */
+
+/* ============================================================
+   1. NicknamePage スコープのローカル変数
+   ============================================================ */
+.nickname-root {
+  /* AuthPage と統一したウォームトーン */
+  --nick-green:         #0ea87a;
+  --nick-green-dark:    #0d9a70;
+  --nick-green-alpha12: rgba(14, 168, 122, 0.12);
+
+  --nick-text-primary:  #1c1917;
+  --nick-text-sub:      #78716c;
+  --nick-text-muted:    #a8a29e;
+  --nick-text-error:    #dc2626;
+
+  --nick-bg:            #f7f5f0;
+  --nick-surface:       #ffffff;
+  --nick-input-bg:      #fafaf9;
+  --nick-border:        #e7e5e0;
+
+  --nick-radius-card:   20px;
+  --nick-radius-input:  12px;
+  --nick-radius-btn:    12px;
+}
+
+/* ============================================================
+   2. ルート・背景
+   ============================================================ */
 .nickname-root {
   min-height: 100vh;
-  background: #F7F5F0;
+  background: var(--nick-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8,23 +44,201 @@
   position: relative;
   overflow: hidden;
 }
-.nickname-bg { position: absolute; inset: 0; pointer-events: none; }
-.nickname-bg-circle { position: absolute; border-radius: 50%; opacity: 0.1; }
-.nickname-bg-circle.c1 { width: 360px; height: 360px; background: #0EA87A; top: -100px; right: -80px; }
-.nickname-bg-circle.c2 { width: 240px; height: 240px; background: #0EA87A; bottom: -60px; left: -40px; }
-.nickname-container { width: 100%; max-width: 380px; position: relative; z-index: 1; animation: nickFadeIn .4s ease; }
-@keyframes nickFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.nickname-logo { font-size: 32px; font-weight: 800; color: #1C1917; letter-spacing: -0.03em; text-align: center; margin-bottom: 24px; }
-.nickname-logo em { color: #0EA87A; font-style: normal; }
-.nickname-card { background: #fff; border-radius: 20px; padding: 32px 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 32px rgba(0,0,0,.08); border: 1px solid #E7E5E0; text-align: center; }
-.nickname-icon { font-size: 48px; margin-bottom: 16px; }
-.nickname-card h2 { font-size: 22px; font-weight: 700; color: #1C1917; letter-spacing: -0.02em; margin-bottom: 8px; }
-.nickname-sub { font-size: 14px; color: #78716C; line-height: 1.7; margin-bottom: 24px; }
-.nickname-field { position: relative; margin-bottom: 8px; }
-.nickname-field input { width: 100%; padding: 13px 48px 13px 16px; border: 1.5px solid #E7E5E0; border-radius: 12px; font-size: 16px; color: #1C1917; background: #FAFAF9; outline: none; transition: border-color .15s; font-family: inherit; text-align: center; }
-.nickname-field input:focus { border-color: #0EA87A; box-shadow: 0 0 0 3px rgba(14,168,122,.12); background: #fff; }
-.nickname-count { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 11px; color: #A8A29E; }
-.nickname-error { font-size: 13px; color: #DC2626; margin-bottom: 12px; }
-.nickname-btn { width: 100%; padding: 14px; background: #0EA87A; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; margin-top: 8px; }
-.nickname-btn:hover:not(:disabled) { background: #0d9a70; }
-.nickname-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── 背景の装飾円（AuthPage と同一デザイン） */
+.nickname-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nickname-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--nick-green);
+  opacity: 0.10;
+}
+
+.nickname-bg-circle.c1 {
+  width: 360px;
+  height: 360px;
+  top: -100px;
+  right: -80px;
+}
+
+.nickname-bg-circle.c2 {
+  width: 240px;
+  height: 240px;
+  bottom: -60px;
+  left: -40px;
+}
+
+/* ============================================================
+   3. コンテナ（フェードインアニメーション）
+   ============================================================ */
+.nickname-container {
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  z-index: 1;
+  animation: nickFadeIn 0.4s ease;
+}
+
+@keyframes nickFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   4. ロゴ
+   ============================================================ */
+.nickname-logo {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--nick-text-primary);
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* "kan" のイタリック強調（AuthPage と統一） */
+.nickname-logo em {
+  color: var(--nick-green);
+  font-style: normal;
+}
+
+/* ============================================================
+   5. カード
+   ============================================================ */
+.nickname-card {
+  background: var(--nick-surface);
+  border-radius: var(--nick-radius-card);
+  padding: 32px 24px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--nick-border);
+  text-align: center;
+}
+
+/* 挨拶アイコン（絵文字） */
+.nickname-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.nickname-card h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--nick-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.nickname-sub {
+  font-size: var(--font-size-sm, 13px);
+  color: var(--nick-text-sub);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+/* ============================================================
+   6. 入力フィールド
+   ============================================================ */
+.nickname-field {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.nickname-field input {
+  width: 100%;
+  /* 右側に文字数カウンターのスペースを確保 */
+  padding: 13px 52px 13px 16px;
+  border: 1.5px solid var(--nick-border);
+  border-radius: var(--nick-radius-input);
+  font-size: var(--font-size-md, 15px);
+  color: var(--nick-text-primary);
+  background: var(--nick-input-bg);
+  outline: none;
+  font-family: inherit;
+  text-align: center;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.nickname-field input:focus {
+  border-color: var(--nick-green);
+  box-shadow: 0 0 0 3px var(--nick-green-alpha12);
+  background: var(--nick-surface);
+}
+
+.nickname-field input::placeholder {
+  color: var(--nick-text-muted);
+}
+
+/* ── 文字数カウンター */
+.nickname-count {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-size-xs, 11px);
+  color: var(--nick-text-muted);
+  /* クリック操作を阻害しないようにする */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ============================================================
+   7. エラーメッセージ
+   ============================================================ */
+.nickname-error {
+  font-size: var(--font-size-sm, 13px);
+  color: var(--nick-text-error);
+  margin-bottom: 12px;
+  text-align: left;
+  padding-left: 4px;
+}
+
+/* ============================================================
+   8. 保存ボタン
+   ============================================================ */
+.nickname-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--nick-green);
+  color: var(--nick-surface);
+  border: none;
+  border-radius: var(--nick-radius-btn);
+  font-size: var(--font-size-md, 15px);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease,
+    opacity 0.15s ease;
+}
+
+.nickname-btn:hover:not(:disabled) {
+  background: var(--nick-green-dark);
+}
+
+.nickname-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.nickname-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,84 +1,165 @@
+/* ============================================================
+   Home.css
+   ホーム画面専用スタイル（プロジェクト一覧・招待バナー・作成モーダル）。
+
+   グローバル変数（App.css :root）を積極的に参照する。
+   Home 固有の値のみローカル変数として定義する。
+   ============================================================ */
+
+/* ============================================================
+   1. ヘッダー
+   ※ App.css の .header と役割が重複しないよう .home-header で独立定義
+   ============================================================ */
 .home-header {
-  background-color: white;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 16px 20px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-md) 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--z-header);
+  height: var(--header-height);
 }
 
-.home-header h1 {
-  font-size: 20px;
+.home-header-title {
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  color: #0ea87a;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
 }
 
-.home-header .user-email {
-  font-size: 12px;
-  color: #999;
-}
-
-/* 統計カード */
-.stats-row {
+/* ヘッダー右側：メールアドレス + ログアウトボタン */
+.home-header-right {
   display: flex;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
 }
 
-.stat-card {
-  flex: 1;
-  background: white;
-  border-radius: 12px;
-  padding: 14px 16px;
-  border: 1px solid #e0e0e0;
+.home-user-email {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
-.stat-label {
-  font-size: 11px;
+.home-logout-btn {
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
 }
 
-.stat-value {
-  font-size: 22px;
-  font-weight: 700;
-  color: #333;
+.home-logout-btn:hover {
+  background: #f5f5f5;
+  color: var(--color-text-primary);
 }
 
-.stat-value.positive {
-  color: #0ea87a;
-}
-
-.stat-value.negative {
-  color: #ef4444;
-}
-
-/* セクションラベル */
+/* ============================================================
+   2. セクションラベル（進行中 / 完了 など）
+   ============================================================ */
 .section-label {
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  color: #999;
+  color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* プロジェクトカード */
-.project-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid #e0e0e0;
+/* 完了セクションは上にスペースを確保 */
+.closed-section {
+  margin-top: 24px;
+}
+
+/* ============================================================
+   3. 招待通知バナー
+   ============================================================ */
+.invitations-section {
+  margin-bottom: 24px;
+}
+
+.invitation-card {
+  background: rgba(14, 168, 122, 0.06);
+  border: 1.5px solid rgba(14, 168, 122, 0.30);
+  border-radius: var(--radius-lg);
+  padding: 14px var(--spacing-md);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.invitation-info {
+  flex: 1;
+  min-width: 0; /* テキストの overflow: ellipsis を有効にするために必要 */
+}
+
+.invitation-name {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invitation-sub {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* 招待参加ボタン */
+.invitation-join-btn {
+  padding: 9px 16px;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  transition: transform 0.1s, box-shadow 0.1s;
+  white-space: nowrap;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.invitation-join-btn:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.invitation-join-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   4. プロジェクトカード
+   ============================================================ */
+.project-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.project-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .project-card:active {
@@ -86,25 +167,41 @@
   box-shadow: none;
 }
 
+/* 完了済みプロジェクト：少し透明にして視覚的に区別 */
+.project-card--closed {
+  opacity: 0.65;
+}
+
+/* ── カード上部（名前 + バッジ） */
 .project-card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 10px;
+}
+
+.project-card-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .project-name {
   font-size: 17px;
   font-weight: 700;
-  color: #333;
+  color: var(--color-text-primary);
   margin-bottom: 4px;
 }
 
 .project-description {
-  font-size: 13px;
-  color: #666;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ── カード下部（作成日） */
 .project-card-bottom {
   display: flex;
   align-items: center;
@@ -115,97 +212,87 @@
 }
 
 .project-date {
-  font-size: 12px;
-  color: #999;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
-/* モーダル */
-.create-modal {
-  background: white;
-  border-radius: 20px 20px 0 0;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 24px 20px 40px;
+/* ── プロジェクトステータスバッジ */
+.project-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.create-modal h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 4px;
+.project-badge--active {
+  background: rgba(14, 168, 122, 0.12);
+  color: var(--color-primary);
 }
 
-.create-modal .modal-subtitle {
-  font-size: 13px;
-  color: #999;
-  margin-bottom: 24px;
+.project-badge--closed {
+  background: #f0ede8;
+  color: #a8a29e;
 }
 
-.modal-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: #e0e0e0;
-  margin: 0 auto 20px;
-}
-
-/* 空の状態 */
+/* ============================================================
+   5. 空の状態（プロジェクトが 0 件のとき）
+   ============================================================ */
 .empty-state {
   text-align: center;
   padding: 48px 20px;
 }
 
 .empty-state p {
-  font-size: 15px;
-  color: #666;
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
 
-.empty-state .empty-hint {
-  font-size: 13px;
-  color: #999;
+.empty-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
 }
 
-/* ── 招待通知 ── */
-.invitations-section { margin-bottom: 20px; }
-.invitation-card {
-  background: rgba(14, 168, 122, 0.06);
-  border: 1.5px solid rgba(14, 168, 122, 0.3);
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.invitation-info { flex: 1; min-width: 0; }
-.invitation-name { font-size: 15px; font-weight: 700; color: #1C1917; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.invitation-sub { font-size: 12px; color: #0EA87A; font-weight: 500; }
-.join-button { padding: 9px 16px; background: #0EA87A; color: #fff; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all .15s; flex-shrink: 0; }
-.join-button:hover { background: #0d9a70; }
-.join-button:disabled { opacity: .6; cursor: not-allowed; }
-
-/* ── 完了プロジェクト ── */
-.project-card-closed {
-  opacity: 0.7;
-}
-.badge-closed {
-  background: #F0EDE8;
-  color: #A8A29E;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+/* ============================================================
+   6. プロジェクト作成モーダル
+   ============================================================ */
+.create-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px 20px 40px;
 }
 
-/* バッジ共通 */
-.badge-active {
-  background: rgba(14, 168, 122, 0.12);
-  color: #0ea87a;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+/* スワイプのアフォーダンス用ハンドル */
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  margin: 0 auto var(--spacing-md);
+}
+
+.create-modal h2 {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+}
+
+.modal-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+/* 作成ボタン（primary-button を width / padding だけ上書き） */
+.home-create-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: var(--font-size-md);
 }

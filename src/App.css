@@ -1,149 +1,243 @@
-* {
+/* ============================================================
+   App.css
+   グローバルスタイル & CSS カスタムプロパティ（変数）の定義
+
+   このファイルで定義した変数を全コンポーネントで参照すること。
+   個別コンポーネントの色・サイズは直接ハードコードせず、
+   必ずここの変数を使うことでデザインの一貫性を保つ。
+   ============================================================ */
+
+/* ============================================================
+   1. CSS カスタムプロパティ（デザイントークン）
+   ============================================================ */
+:root {
+  /* ── カラー：ブランドカラー */
+  --color-primary:        #0ea87a;  /* メインのグリーン */
+  --color-primary-light:  #e6f7f1;  /* グリーンの薄い背景色 */
+  --color-primary-dark:   #0b8f67;  /* ホバー時など */
+
+  /* ── カラー：セマンティック */
+  --color-danger:         #ef4444;  /* 削除・エラー */
+  --color-danger-light:   #fee2e2;
+  --color-warning:        #f59e0b;  /* 警告 */
+  --color-warning-light:  #fef3c7;
+  --color-success:        #16a34a;  /* 成功 */
+  --color-success-light:  #dcfce7;
+
+  /* ── カラー：テキスト */
+  --color-text-primary:   #1a1a1a;  /* 本文・見出し */
+  --color-text-secondary: #555555;  /* サブテキスト */
+  --color-text-muted:     #999999;  /* プレースホルダーなど */
+
+  /* ── カラー：背景・ボーダー */
+  --color-bg:             #f5f5f5;  /* ページ背景 */
+  --color-surface:        #ffffff;  /* カード・モーダル背景 */
+  --color-border:         #e0e0e0;  /* 区切り線・枠線 */
+  --color-border-focus:   #0ea87a;  /* フォーカス時の枠線 */
+
+  /* ── タイポグラフィ */
+  --font-family:   'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif;
+  --font-size-xs:  11px;
+  --font-size-sm:  13px;
+  --font-size-md:  15px;  /* ベースサイズ */
+  --font-size-lg:  18px;
+  --font-size-xl:  22px;
+  --font-size-2xl: 28px;
+
+  /* ── 角丸 */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-full: 9999px;
+
+  /* ── シャドウ */
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md:  0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-fab: 0 4px 16px rgba(14, 168, 122, 0.35);
+
+  /* ── スペーシング */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* ── トランジション */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+
+  /* ── コンテンツ最大幅 */
+  --max-width: 600px;
+
+  /* ── ヘッダー高さ（fixed/sticky 要素のオフセット用） */
+  --header-height: 57px;
+
+  /* ── z-index 管理 */
+  --z-header:  100;
+  --z-modal:   200;
+  --z-fab:     150;
+}
+
+/* ============================================================
+   2. リセット & ベース
+   ============================================================ */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
 body {
-  font-family: 'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
   line-height: 1.6;
+  font-size: var(--font-size-md);
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ============================================================
+   3. ボタン共通スタイル
+   ============================================================ */
 button {
   cursor: pointer;
   border: none;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   padding: 10px 20px;
-  transition: opacity 0.15s;
+  transition: opacity var(--transition-fast);
 }
 
 button:active {
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* プライマリ：緑ボタン */
 .primary-button {
-  background-color: #0ea87a;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
 }
 
+.primary-button:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+/* セカンダリ：グレーボタン */
 .secondary-button {
   background-color: #f0f0f0;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
+.secondary-button:hover:not(:disabled) {
+  background-color: #e4e4e4;
+}
+
+/* デンジャー：赤ボタン */
 .danger-button {
-  background-color: #ef4444;
-  color: white;
+  background-color: var(--color-danger);
+  color: var(--color-surface);
 }
 
-/* ログイン画面 */
-.login-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 40px;
-  text-align: center;
+.danger-button:hover:not(:disabled) {
+  background-color: #dc2626;
 }
 
-.login-page h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #0ea87a;
-}
-
-.login-page p {
-  color: #666;
-  margin-bottom: 32px;
-}
-
-.login-page button {
-  padding: 14px 32px;
-  font-size: 16px;
-  background-color: #0ea87a;
-  color: white;
-  border-radius: 12px;
-}
-
-/* ヘッダー */
+/* ============================================================
+   4. ヘッダー
+   ============================================================ */
 .header {
-  background-color: white;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 16px 20px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-md) 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--z-header);
+  height: var(--header-height);
 }
 
 .header h1 {
-  font-size: 18px;
+  font-size: var(--font-size-lg);
   font-weight: 700;
-  color: #0ea87a;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
 }
 
-/* メインコンテンツ */
+/* ============================================================
+   5. メインコンテンツ
+   ============================================================ */
 .main-content {
-  max-width: 600px;
+  max-width: var(--max-width);
   margin: 0 auto;
   padding: 20px;
 }
 
-/* カード */
+/* ============================================================
+   6. カード
+   ============================================================ */
 .card {
-  background-color: white;
-  border-radius: 12px;
-  padding: 16px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
   margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .card h2 {
-  font-size: 16px;
+  font-size: var(--font-size-md);
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
 }
 
 .card p {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 
-/* 金額 */
+/* ============================================================
+   7. 金額表示
+   ============================================================ */
 .amount {
   font-size: 20px;
   font-weight: 700;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .amount-positive {
-  color: #0ea87a;
+  color: var(--color-primary);
 }
 
 .amount-negative {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
-/* フォーム */
+/* ============================================================
+   8. フォーム
+   ============================================================ */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-md);
 }
 
 .form-group label {
   display: block;
-  font-size: 13px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  color: #666;
+  color: var(--color-text-secondary);
   margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .form-group input,
@@ -151,79 +245,95 @@ button:active {
 .form-group textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #e0e0e0;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 15px;
-  color: #333;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
   background-color: #fafafa;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast),
+              background-color var(--transition-fast);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--color-text-muted);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #0ea87a;
-  background-color: white;
+  border-color: var(--color-border-focus);
+  background-color: var(--color-surface);
 }
 
-/* ローディング */
+/* ============================================================
+   9. ローディング
+   ============================================================ */
 .loading {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  font-size: 16px;
-  color: #666;
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
 }
 
-/* エラー */
+/* ============================================================
+   10. エラー・アラート
+   ============================================================ */
 .error {
-  background-color: #fee2e2;
+  background-color: var(--color-danger-light);
   border: 1px solid #fca5a5;
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: #dc2626;
-  font-size: 14px;
-  margin-bottom: 16px;
+  border-radius: var(--radius-md);
+  padding: 12px var(--spacing-md);
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-md);
 }
 
-/* バッジ */
+/* ============================================================
+   11. バッジ
+   ============================================================ */
 .badge {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 11px;
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 600;
 }
 
 .badge-active {
-  background-color: #dcfce7;
-  color: #16a34a;
+  background-color: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .badge-done {
   background-color: #f0f0f0;
-  color: #999;
+  color: var(--color-text-muted);
 }
 
-/* アバター */
+/* ============================================================
+   12. アバター（イニシャルアイコン）
+   ============================================================ */
 .avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background-color: #0ea87a;
-  color: white;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   flex-shrink: 0;
 }
 
-/* リスト */
+/* ============================================================
+   13. リストアイテム
+   ============================================================ */
 .list-item {
   display: flex;
   align-items: center;
@@ -236,38 +346,57 @@ button:active {
   border-bottom: none;
 }
 
-/* FAB ボタン */
+/* ============================================================
+   14. FAB（フローティングアクションボタン）
+   ============================================================ */
 .fab {
   position: fixed;
   bottom: 32px;
   right: 20px;
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  background-color: #0ea87a;
-  color: white;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-surface);
   font-size: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(14, 168, 122, 0.35);
+  box-shadow: var(--shadow-fab);
   border: none;
   cursor: pointer;
+  z-index: var(--z-fab);
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast);
 }
 
-/* モーダル */
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(14, 168, 122, 0.45);
+}
+
+.fab:active {
+  transform: scale(0.97);
+  opacity: 1; /* button:active の opacity 上書き */
+}
+
+/* ============================================================
+   15. モーダル
+   ============================================================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: flex-end;
-  z-index: 200;
+  z-index: var(--z-modal);
+  /* スクロール防止 */
+  overflow: hidden;
 }
 
 .modal {
-  background-color: white;
-  border-radius: 20px 20px 0 0;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -275,36 +404,44 @@ button:active {
 }
 
 .modal h2 {
-  font-size: 18px;
+  font-size: var(--font-size-lg);
   font-weight: 700;
   margin-bottom: 20px;
 }
 
-/* タブ */
+/* ============================================================
+   16. タブ
+   ============================================================ */
 .tabs {
   display: flex;
-  background-color: white;
-  border-radius: 10px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
   padding: 4px;
-  margin-bottom: 16px;
-  border: 1px solid #e0e0e0;
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  gap: 4px;
 }
 
 .tab {
   flex: 1;
   padding: 10px;
   text-align: center;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  color: #999;
-  border-radius: 8px;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   border: none;
   background: none;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .tab.active {
-  background-color: #0ea87a;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.tab:hover:not(.active) {
+  color: var(--color-text-primary);
+  background-color: #f0f0f0;
 }

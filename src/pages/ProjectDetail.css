@@ -1,86 +1,372 @@
-/* ── 招待UI ── */
-.invite-fab {
-  position: fixed;
-  bottom: 160px;
-  right: 18px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #fff;
-  border: 1.5px solid #E7E5E0;
+/* ============================================================
+   ProjectDetail.css
+   プロジェクト詳細画面専用スタイル。
+
+   以下のUIを定義する：
+     - ヘッダー（戻るボタン・プロジェクト名・ステータスボタン）
+     - 終了済みバナー
+     - 支払い追加モーダル（split-toggle・member-checklist・split-preview）
+     - メンバー招待モーダル（recruit FAB・招待リンク・招待結果）
+
+   元コードのインラインスタイルをすべてこのファイルに移した。
+   グローバル変数（App.css :root）を参照すること。
+   ============================================================ */
+
+/* ============================================================
+   1. ヘッダー要素
+   ============================================================ */
+
+/* 戻るボタン（← アイコン） */
+.pd-back-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-size: 20px;
+  color: var(--color-text-primary);
   cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  line-height: 1;
+}
+
+.pd-back-btn:hover {
+  background: #f0f0f0;
+}
+
+/* プロジェクト名（ヘッダー中央） */
+.pd-header-title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+  text-align: center;
+  /* 長いプロジェクト名を省略 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 8px;
+}
+
+/* 終了 / 再開ボタン（オーナーのみ表示） */
+.pd-status-btn {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pd-status-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 「終了」ボタン：赤系 */
+.pd-status-btn--close {
+  background: rgba(239, 68, 68, 0.10);
+  color: var(--color-danger);
+}
+
+.pd-status-btn--close:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+/* 「再開」ボタン：緑系 */
+.pd-status-btn--reopen {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.pd-status-btn--reopen:hover:not(:disabled) {
+  background: rgba(14, 168, 122, 0.20);
+}
+
+/* ============================================================
+   2. 終了済みバナー
+   ============================================================ */
+.pd-closed-banner {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.20);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ============================================================
+   3. 支払い追加モーダル：請求先（split-toggle）
+   ============================================================ */
+.split-toggle {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.split-toggle button {
+  flex: 1;
+  padding: 9px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: #fafafa;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+
+.split-toggle button.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.split-toggle button:hover:not(.active) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ============================================================
+   4. カスタム請求先：メンバー選択リスト
+   ============================================================ */
+.member-checklist {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: #fafafa;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.member-check-item:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.member-check-item--checked {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* メンバーイニシャルアバター（小） */
+.member-check-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.1);
-  z-index: 10;
-  transition: all .2s;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  flex-shrink: 0;
 }
-.invite-fab:active { transform: scale(.95); }
 
-.invite-section { margin-bottom: 4px; }
-.invite-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #57534E;
+.member-check-name {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.member-check-icon {
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   5. 1人あたり金額プレビュー
+   ============================================================ */
+.split-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-primary-light);
+  border: 1px solid rgba(14, 168, 122, 0.25);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: var(--spacing-md);
+}
+
+.split-preview-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.split-preview-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.split-preview-unit {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: 2px;
+}
+
+/* ============================================================
+   6. モーダル内ボタン（幅100%上書き）
+   ============================================================ */
+
+/* 支払い追加の「追加する」ボタン */
+.pd-modal-submit-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 4px;
+  font-size: var(--font-size-md);
+}
+
+/* 招待モーダルの各アクションボタン */
+.pd-modal-invite-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-md);
+}
+
+/* 招待モーダルの「閉じる」ボタン */
+.pd-modal-close-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-md);
+  margin-top: 12px;
+}
+
+/* ============================================================
+   7. メンバー招待モーダル
+   ============================================================ */
+.invite-section {
   margin-bottom: 4px;
 }
 
+.invite-section .form-group {
+  margin-top: 8px;
+}
+
+.invite-section-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+/* 区切り線（OR ディバイダー） */
 .invite-divider {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 16px 0;
+  margin: var(--spacing-md) 0;
 }
+
 .invite-divider::before,
 .invite-divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #E7E5E0;
+  background: var(--color-border);
 }
-.invite-divider span { font-size: 12px; color: #A8A29E; }
 
+.invite-divider span {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 招待リンク表示ボックス */
 .invite-link-box {
-  font-size: 11px;
-  color: #57534E;
-  background: #F7F5F0;
-  border: 1px solid #E7E5E0;
-  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background: #f7f5f0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 8px 10px;
   margin-top: 8px;
   word-break: break-all;
   font-family: monospace;
 }
 
+/* 招待結果メッセージ */
 .invite-message {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   margin-top: 12px;
   line-height: 1.5;
 }
-.invite-message.success {
-  background: rgba(14,168,122,.08);
-  color: #0EA87A;
-  border: 1px solid rgba(14,168,122,.2);
-}
-.invite-message.error {
-  background: rgba(239,68,68,.08);
-  color: #DC2626;
-  border: 1px solid rgba(239,68,68,.2);
+
+.invite-message--success {
+  background: rgba(14, 168, 122, 0.08);
+  color: var(--color-primary);
+  border: 1px solid rgba(14, 168, 122, 0.20);
 }
 
-.secondary-button {
-  background: #F7F5F0;
-  color: #57534E;
-  border: 1.5px solid #E7E5E0;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all .15s;
+.invite-message--error {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.20);
 }
-.secondary-button:hover { background: #EEECE8; }
+
+/* ============================================================
+   8. 招待 FAB（メンバー招待ボタン）
+   ============================================================ */
+.invite-fab {
+  position: fixed;
+  /* 支払いFAB (bottom: 32px) より上に配置 */
+  bottom: 100px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-fab);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.invite-fab:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.invite-fab:active {
+  transform: scale(0.95);
+}
+
+/* ============================================================
+   9. モーダルハンドル（App.css の .modal-handle と統一）
+      ※ .modal 内で使うが、ProjectDetail のモーダルでも同じデザイン
+   ============================================================ */
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  margin: 0 auto var(--spacing-md);
+}

@@ -1,6 +1,47 @@
+/* ============================================================
+   JoinPage.css
+   招待リンク経由のプロジェクト参加画面専用スタイル。
+
+   Auth / NicknamePage と同一の Stone 系ウォームトーンで統一。
+   ローカル変数の命名体系も --join-* で揃えている。
+   ============================================================ */
+
+/* ============================================================
+   1. JoinPage スコープのローカル変数
+   ============================================================ */
+.join-root {
+  /* ブランドグリーン */
+  --join-green:         #0ea87a;
+  --join-green-dark:    #0d9a70;
+
+  /* Stone 系テキスト */
+  --join-text-primary:  #1c1917;
+  --join-text-sub:      #78716c;
+  --join-text-muted:    #a8a29e;
+  --join-text-label:    #57534e;
+  --join-text-error:    #dc2626;
+
+  /* 背景・サーフェス・ボーダー */
+  --join-bg:            #f7f5f0;
+  --join-surface:       #ffffff;
+  --join-border:        #e7e5e0;
+
+  /* ボタン */
+  --join-btn-secondary-bg:    #f7f5f0;
+  --join-btn-secondary-hover: #eeece8;
+
+  /* 角丸 */
+  --join-radius-card:   20px;
+  --join-radius-btn:    12px;
+  --join-radius-id:     8px;
+}
+
+/* ============================================================
+   2. ルート・背景
+   ============================================================ */
 .join-root {
   min-height: 100vh;
-  background: #F7F5F0;
+  background: var(--join-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8,24 +49,184 @@
   position: relative;
   overflow: hidden;
 }
-.join-bg { position: absolute; inset: 0; pointer-events: none; }
-.join-bg-circle { position: absolute; border-radius: 50%; opacity: 0.1; }
-.join-bg-circle.c1 { width: 360px; height: 360px; background: #0EA87A; top: -100px; right: -80px; }
-.join-bg-circle.c2 { width: 240px; height: 240px; background: #0EA87A; bottom: -60px; left: -40px; }
-.join-container { width: 100%; max-width: 380px; position: relative; z-index: 1; animation: joinFadeIn .4s ease; }
-@keyframes joinFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.join-logo { font-size: 32px; font-weight: 800; color: #1C1917; letter-spacing: -0.03em; text-align: center; margin-bottom: 24px; }
-.join-logo em { color: #0EA87A; font-style: normal; }
-.join-card { background: #fff; border-radius: 20px; padding: 32px 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 8px 32px rgba(0,0,0,.08); border: 1px solid #E7E5E0; text-align: center; }
-.join-icon { font-size: 48px; margin-bottom: 16px; }
-.join-card h2 { font-size: 20px; font-weight: 700; color: #1C1917; letter-spacing: -0.02em; margin-bottom: 8px; }
-.join-sub { font-size: 14px; color: #78716C; line-height: 1.6; margin-bottom: 20px; }
-.join-error { color: #DC2626; }
-.join-project-id { font-size: 12px; color: #A8A29E; font-family: monospace; background: #F7F5F0; padding: 6px 12px; border-radius: 8px; margin-bottom: 20px; display: inline-block; }
-.join-btn { width: 100%; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; font-family: inherit; margin-bottom: 10px; display: block; }
-.join-btn:active { transform: scale(.98); }
-.join-btn-primary { background: #0EA87A; color: #fff; }
-.join-btn-primary:hover { background: #0d9a70; }
-.join-btn-secondary { background: #F7F5F0; color: #57534E; border: 1.5px solid #E7E5E0; }
-.join-btn-secondary:hover { background: #EEECE8; }
-.join-loading { font-size: 14px; color: #78716C; padding: 20px 0; }
+
+/* ── 背景の装飾円 */
+.join-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.join-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--join-green);
+  opacity: 0.10;
+}
+
+.join-bg-circle.c1 {
+  width: 360px;
+  height: 360px;
+  top: -100px;
+  right: -80px;
+}
+
+.join-bg-circle.c2 {
+  width: 240px;
+  height: 240px;
+  bottom: -60px;
+  left: -40px;
+}
+
+/* ============================================================
+   3. コンテナ（フェードインアニメーション）
+   ============================================================ */
+.join-container {
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  z-index: 1;
+  animation: joinFadeIn 0.4s ease;
+}
+
+@keyframes joinFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   4. ロゴ
+   ============================================================ */
+.join-logo {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--join-text-primary);
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.join-logo em {
+  color: var(--join-green);
+  font-style: normal;
+}
+
+/* ============================================================
+   5. カード
+   ============================================================ */
+.join-card {
+  background: var(--join-surface);
+  border-radius: var(--join-radius-card);
+  padding: 32px 24px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--join-border);
+  text-align: center;
+}
+
+/* ── アイコン（絵文字） */
+.join-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.join-card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--join-text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+/* ── サブテキスト */
+.join-sub {
+  font-size: var(--font-size-sm, 14px);
+  color: var(--join-text-sub);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* エラー時はサブテキストをred に上書き */
+.join-sub.join-error {
+  color: var(--join-text-error);
+}
+
+/* ── プロジェクト ID 表示 */
+.join-project-id {
+  display: inline-block;
+  font-size: var(--font-size-xs, 12px);
+  color: var(--join-text-muted);
+  font-family: monospace;
+  background: var(--join-bg);
+  padding: 6px 12px;
+  border-radius: var(--join-radius-id);
+  margin-bottom: 20px;
+}
+
+/* ── 処理中テキスト */
+.join-loading {
+  font-size: var(--font-size-sm, 14px);
+  color: var(--join-text-sub);
+  padding: 20px 0;
+}
+
+/* ============================================================
+   6. ボタン
+   ============================================================ */
+.join-btn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--join-radius-btn);
+  font-size: var(--font-size-md, 15px);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  margin-bottom: 10px;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.join-btn:last-child {
+  margin-bottom: 0;
+}
+
+.join-btn:active {
+  transform: scale(0.98);
+}
+
+.join-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* プライマリ（グリーン） */
+.join-btn-primary {
+  background: var(--join-green);
+  color: var(--join-surface);
+}
+
+.join-btn-primary:hover:not(:disabled) {
+  background: var(--join-green-dark);
+}
+
+/* セカンダリ（ウォームグレー） */
+.join-btn-secondary {
+  background: var(--join-btn-secondary-bg);
+  color: var(--join-text-label);
+  border: 1.5px solid var(--join-border);
+}
+
+.join-btn-secondary:hover:not(:disabled) {
+  background: var(--join-btn-secondary-hover);
+}

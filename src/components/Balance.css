@@ -1,25 +1,161 @@
+/* ============================================================
+   Balance.css
+   残高・精算コンポーネント専用スタイル。
+
+   グローバル変数（App.css :root）を参照し、
+   ハードコードの色・サイズは使用しない。
+   ============================================================ */
+
+/* ============================================================
+   1. 残高カード
+   ============================================================ */
+
+/* セクションタイトル（「メンバー別残高」） */
+.balance-section-title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+/* メンバー行（アバター + 名前） */
+.balance-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.balance-member-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* 残高金額（App.css の .amount-positive / .amount-negative を利用） */
+.balance-amount {
+  font-weight: 700;
+  font-size: var(--font-size-md);
+}
+
+/* ============================================================
+   2. 精算プランセクション
+   ============================================================ */
+
+/* セクションラベル（「精算プラン（最少送金数）」） */
+.balance-plan-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: var(--spacing-md) 0 8px;
+}
+
+/* 全員精算済みカード */
+.balance-settled-card {
+  text-align: center;
+  padding: 24px;
+}
+
+.balance-settled-text {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================================
+   3. 精算カード（送金者 → 受取者）
+   ============================================================ */
 .settle-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
+/* 送金者・受取者・矢印を横並び */
 .settle-info {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
+  min-width: 0;
 }
 
+/* 各メンバー（アバター + 名前） */
+.settle-person {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* 精算カード用アバター（通常より少し小さい） */
+.settle-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: var(--font-size-xs) !important;
+  flex-shrink: 0;
+}
+
+.settle-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 矢印（→） */
+.settle-arrow {
+  color: var(--color-text-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   4. 精算カード右側（金額 + ボタン）
+   ============================================================ */
+.settle-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 精算金額（赤字で強調） */
+.settle-amount {
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  color: var(--color-danger);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   5. 「返した」ボタン（送金者のみ表示）
+   ============================================================ */
 .settle-button {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  background: rgba(14, 168, 122, 0.12);
-  color: #0ea87a;
-  border: none;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid rgba(14, 168, 122, 0.30);
   cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.settle-button:hover:not(:disabled) {
+  background: rgba(14, 168, 122, 0.20);
+}
+
+.settle-button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .settle-button:disabled {

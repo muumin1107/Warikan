@@ -1,8 +1,57 @@
-/* ── AuthPage.css ── */
+/* ============================================================
+   AuthPage.css
+   認証画面専用スタイル（ログイン / 新規登録 / 確認コード等）
 
+   デザインコンセプト：
+   - ウォームトーン（Stone系）の背景でやわらかな印象
+   - ブランドカラーのグリーン（--auth-green）でアクセント
+   - 背景の装飾円で奥行きを演出
+
+   グローバル変数（App.css の :root）を参照しつつ、
+   AuthPage 固有のウォームカラーはローカル変数で上書き定義する。
+   ============================================================ */
+
+/* ============================================================
+   1. AuthPage スコープのローカル変数
+      ※ グローバル変数と微妙にトーンが異なるウォームカラー群
+   ============================================================ */
+.auth-root {
+  /* ウォームグリーン（グローバルの --color-primary と同値） */
+  --auth-green:          #0ea87a;
+  --auth-green-dark:     #0d9a70;
+  --auth-green-alpha12:  rgba(14, 168, 122, 0.12);
+  --auth-green-alpha20:  rgba(14, 168, 122, 0.20);
+
+  /* Stone（ウォームグレー）系テキスト */
+  --auth-text-primary:   #1c1917;  /* タイトル・入力値 */
+  --auth-text-secondary: #78716c;  /* サブテキスト */
+  --auth-text-label:     #57534e;  /* フォームラベル */
+  --auth-text-muted:     #a8a29e;  /* プレースホルダー・区切り文字 */
+
+  /* Stone 系背景・ボーダー */
+  --auth-bg:             #f7f5f0;  /* ページ背景 */
+  --auth-surface:        #ffffff;  /* カード背景 */
+  --auth-border:         #e7e5e0;  /* 枠線・区切り線 */
+  --auth-input-bg:       #fafaf9;  /* 入力フィールド背景 */
+
+  /* エラー */
+  --auth-error:          #dc2626;
+  --auth-error-bg:       rgba(239, 68, 68, 0.08);
+  --auth-error-border:   rgba(239, 68, 68, 0.20);
+
+  /* 角丸 */
+  --auth-radius-input:   10px;
+  --auth-radius-btn:     12px;
+  --auth-radius-card:    20px;
+  --auth-radius-msg:     10px;
+}
+
+/* ============================================================
+   2. ルート・背景
+   ============================================================ */
 .auth-root {
   min-height: 100vh;
-  background: #F7F5F0;
+  background: var(--auth-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,237 +60,309 @@
   overflow: hidden;
 }
 
-/* 背景の装飾円 */
+/* ── 背景の装飾円 */
 .auth-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
+
 .auth-bg-circle {
   position: absolute;
-  border-radius: 50%;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--auth-green);
   opacity: 0.12;
 }
+
 .auth-bg-circle.c1 {
   width: 420px;
   height: 420px;
-  background: #0EA87A;
   top: -120px;
   right: -100px;
 }
+
 .auth-bg-circle.c2 {
   width: 280px;
   height: 280px;
-  background: #0EA87A;
   bottom: -80px;
   left: -60px;
 }
+
 .auth-bg-circle.c3 {
   width: 160px;
   height: 160px;
-  background: #059669;
   top: 40%;
   left: 20%;
+  background: #059669;  /* わずかに深いグリーン */
   opacity: 0.06;
 }
 
-/* ── コンテナ ── */
+/* ============================================================
+   3. コンテナ（フェードインアニメーション）
+   ============================================================ */
 .auth-container {
   width: 100%;
   max-width: 400px;
   position: relative;
   z-index: 1;
-  animation: authFadeIn .4s ease;
+  animation: authFadeIn 0.4s ease;
 }
 
 @keyframes authFadeIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* ── ロゴ ── */
+/* ============================================================
+   4. ロゴ
+   ============================================================ */
 .auth-logo {
   text-align: center;
   margin-bottom: 28px;
 }
+
 .auth-logo-text {
   font-size: 36px;
   font-weight: 800;
-  color: #1C1917;
+  color: var(--auth-text-primary);
   letter-spacing: -0.03em;
   display: block;
   line-height: 1;
   margin-bottom: 6px;
 }
+
+/* "kan" のイタリック強調（グリーンでアクセント） */
 .auth-logo-text em {
-  color: #0EA87A;
+  color: var(--auth-green);
   font-style: normal;
 }
+
 .auth-logo-sub {
-  font-size: 13px;
-  color: #78716C;
+  font-size: var(--font-size-sm, 13px);
+  color: var(--auth-text-secondary);
 }
 
-/* ── カード ── */
+/* ============================================================
+   5. カード
+   ============================================================ */
 .auth-card {
-  background: #FFFFFF;
-  border-radius: 20px;
+  background: var(--auth-surface);
+  border-radius: var(--auth-radius-card);
   padding: 28px 24px 32px;
   box-shadow:
-    0 1px 3px rgba(0,0,0,.06),
-    0 8px 32px rgba(0,0,0,.08);
-  border: 1px solid #E7E5E0;
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--auth-border);
 }
 
+/* ── カードヘッダー（タイトル・サブタイトル） */
 .auth-card-header {
   margin-bottom: 22px;
 }
+
 .auth-card-header h2 {
   font-size: 20px;
   font-weight: 700;
-  color: #1C1917;
+  color: var(--auth-text-primary);
   letter-spacing: -0.02em;
   margin-bottom: 4px;
 }
+
 .auth-card-header p {
-  font-size: 13px;
-  color: #78716C;
+  font-size: var(--font-size-sm, 13px);
+  color: var(--auth-text-secondary);
+  word-break: break-all;  /* 長いメールアドレスが折り返されるように */
 }
 
-/* ── メッセージ ── */
+/* ============================================================
+   6. メッセージ（エラー / インフォ）
+   ============================================================ */
 .auth-msg {
   padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  margin-bottom: 16px;
+  border-radius: var(--auth-radius-msg);
+  font-size: var(--font-size-sm, 13px);
+  margin-bottom: var(--spacing-md, 16px);
   line-height: 1.5;
 }
+
 .auth-msg-err {
-  background: rgba(239, 68, 68, .08);
-  color: #DC2626;
-  border: 1px solid rgba(239, 68, 68, .2);
-}
-.auth-msg-ok {
-  background: rgba(14, 168, 122, .08);
-  color: #0EA87A;
-  border: 1px solid rgba(14, 168, 122, .2);
+  background: var(--auth-error-bg);
+  color: var(--auth-error);
+  border: 1px solid var(--auth-error-border);
 }
 
-/* ── フォーム ── */
+.auth-msg-ok {
+  background: var(--auth-green-alpha12);
+  color: var(--auth-green);
+  border: 1px solid var(--auth-green-alpha20);
+}
+
+/* ============================================================
+   7. フォーム
+   ============================================================ */
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
+/* ── フィールド（ラベル + 入力） */
 .auth-field {
   margin-bottom: 14px;
 }
+
 .auth-field label {
   display: block;
-  font-size: 13px;
+  font-size: var(--font-size-sm, 13px);
   font-weight: 600;
-  color: #57534E;
+  color: var(--auth-text-label);
   margin-bottom: 6px;
 }
+
 .auth-field input {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #E7E5E0;
-  border-radius: 10px;
-  font-size: 15px;
-  color: #1C1917;
-  background: #FAFAF9;
+  border: 1.5px solid var(--auth-border);
+  border-radius: var(--auth-radius-input);
+  font-size: var(--font-size-md, 15px);
+  color: var(--auth-text-primary);
+  background: var(--auth-input-bg);
   outline: none;
-  transition: border-color .15s, box-shadow .15s;
   font-family: inherit;
-}
-.auth-field input:focus {
-  border-color: #0EA87A;
-  box-shadow: 0 0 0 3px rgba(14, 168, 122, .12);
-  background: #fff;
-}
-.auth-field input::placeholder {
-  color: #A8A29E;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
-/* コード入力 */
+.auth-field input:focus {
+  border-color: var(--auth-green);
+  box-shadow: 0 0 0 3px var(--auth-green-alpha12);
+  background: var(--auth-surface);
+}
+
+.auth-field input::placeholder {
+  color: var(--auth-text-muted);
+}
+
+/* ── 確認コード入力（大きな数字・中央揃え） */
 .auth-code-input {
   font-size: 24px !important;
-  letter-spacing: .3em;
+  letter-spacing: 0.3em;
   text-align: center;
   font-weight: 600 !important;
 }
 
-/* ── ボタン ── */
+/* ============================================================
+   8. ボタン
+   ============================================================ */
 .auth-btn {
   width: 100%;
   padding: 13px;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: var(--auth-radius-btn);
+  font-size: var(--font-size-md, 15px);
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: all .15s;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: inherit;
+  transition: all 0.15s ease;
 }
-.auth-btn:active { transform: scale(.98); }
-.auth-btn:disabled { opacity: .6; cursor: not-allowed; }
 
+.auth-btn:active {
+  transform: scale(0.98);
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* プライマリ（グリーン） */
 .auth-btn-primary {
-  background: #0EA87A;
-  color: #fff;
+  background: var(--auth-green);
+  color: var(--auth-surface);
   margin-top: 4px;
 }
-.auth-btn-primary:hover:not(:disabled) { background: #0d9a70; }
 
-.auth-btn-google {
-  background: #fff;
-  color: #1C1917;
-  border: 1.5px solid #C8C5BF;
+.auth-btn-primary:hover:not(:disabled) {
+  background: var(--auth-green-dark);
 }
-.auth-btn-google:hover { background: #F7F5F0; }
 
-/* ── 区切り線 ── */
+/* Google */
+.auth-btn-google {
+  background: var(--auth-surface);
+  color: var(--auth-text-primary);
+  border: 1.5px solid #c8c5bf;
+}
+
+.auth-btn-google:hover:not(:disabled) {
+  background: var(--auth-bg);
+}
+
+/* ============================================================
+   9. 区切り線（OR ディバイダー）
+   ============================================================ */
 .auth-divider {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 14px 0;
 }
+
 .auth-divider::before,
 .auth-divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #E7E5E0;
-}
-.auth-divider span {
-  font-size: 12px;
-  color: #A8A29E;
+  background: var(--auth-border);
 }
 
-/* ── テキストリンク ── */
+.auth-divider span {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--auth-text-muted);
+}
+
+/* ============================================================
+   10. テキストリンクボタン
+   ============================================================ */
+
+/* 「パスワードを忘れた場合」- 右寄せ */
+.auth-link-forgot {
+  text-align: right;
+  margin-bottom: 8px;
+}
+
 .auth-link-btn {
   background: none;
   border: none;
-  color: #0EA87A;
-  font-size: 13px;
+  color: var(--auth-green);
+  font-size: var(--font-size-sm, 13px);
   font-weight: 600;
   cursor: pointer;
   padding: 0 2px;
   font-family: inherit;
-  transition: opacity .15s;
+  transition: opacity 0.15s ease;
 }
-.auth-link-btn:hover { opacity: .75; }
 
+.auth-link-btn:hover {
+  opacity: 0.75;
+}
+
+/* ============================================================
+   11. モード切替テキスト（「〜の方は ログイン」など）
+   ============================================================ */
 .auth-switch {
   text-align: center;
-  font-size: 13px;
-  color: #78716C;
-  margin-top: 16px;
+  font-size: var(--font-size-sm, 13px);
+  color: var(--auth-text-secondary);
+  margin-top: var(--spacing-md, 16px);
 }
