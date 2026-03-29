@@ -1,0 +1,72 @@
+.split-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.split-toggle button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1.5px solid #e0e0e0;
+  background: #fafafa;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.split-toggle button.active {
+  background: #0ea87a;
+  border-color: #0ea87a;
+  color: white;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e0e0e0;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+.member-check.checked {
+  border-color: #0ea87a;
+  background: rgba(14, 168, 122, 0.08);
+}
+
+.member-check span {
+  flex: 1;
+  font-size: 14px;
+}
+
+.check-icon {
+  font-size: 16px;
+}
+
+.split-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(14, 168, 122, 0.08);
+  border: 1px solid rgba(14, 168, 122, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.split-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0ea87a;
+}

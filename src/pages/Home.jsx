@@ -1,0 +1,132 @@
+import { useEffect, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'  // ← 追加
+import './Home.css'
+
+export default function Home({ apiClient, user, onSelectProject }) {
+  const [projects, setProjects]     = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [showModal, setShowModal]   = useState(false)
+  const [newProject, setNewProject] = useState({ name: '', description: '' })
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    try {
+      const res = await apiClient.get('/projects')
+      setProjects(res.data.projects || [])
+    } catch (err) {
+      console.error('Failed to fetch projects:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const createProject = async () => {
+    if (!newProject.name.trim()) return
+    try {
+      await apiClient.post('/projects', {
+        operation:   'CREATE_PROJECT',   // ← 追加
+        projectId:   uuidv4(),           // ← 追加
+        name:        newProject.name,
+        description: newProject.description,
+      })
+      setShowModal(false)
+      setNewProject({ name: '', description: '' })
+      setTimeout(fetchProjects, 2000)
+    } catch (err) {
+      console.error('Failed to create project:', err)
+    }
+  }
+
+  if (loading) return <div className="loading">読み込み中...</div>
+
+  return (
+    <div>
+      {/* ヘッダー */}
+      <div className="home-header">
+        <h1>Warikan</h1>
+        <span className="user-email">{user?.email}</span>
+      </div>
+
+      <div className="main-content">
+        <div className="section-label" style={{ marginBottom: '12px' }}>
+          マイトリップ
+        </div>
+
+        {projects.length === 0 ? (
+          <div className="empty-state">
+            <p>まだプロジェクトがありません</p>
+            <p className="empty-hint">＋ボタンから作成してください</p>
+          </div>
+        ) : (
+          projects.map(project => (
+            <div
+              key={project.projectId}
+              className="project-card"
+              onClick={() => onSelectProject(project)}
+            >
+              <div className="project-card-top">
+                <div>
+                  <div className="project-name">{project.name}</div>
+                  {project.description && (
+                    <div className="project-description">{project.description}</div>
+                  )}
+                </div>
+                <span className="badge badge-active">進行中</span>
+              </div>
+              <div className="project-card-bottom">
+                <span className="project-date">
+                  {project.createdAt?.slice(0, 10)}
+                </span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* FAB ボタン */}
+      <button className="fab" onClick={() => setShowModal(true)}>＋</button>
+
+      {/* プロジェクト作成モーダル */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="create-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-handle" />
+            <h2>新しいトリップ</h2>
+            <p className="modal-subtitle">旅行やイベントを作成</p>
+
+            <div className="form-group">
+              <label>トリップ名</label>
+              <input
+                type="text"
+                placeholder="例: タイ旅行2024"
+                value={newProject.name}
+                onChange={e => setNewProject({ ...newProject, name: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>説明（任意）</label>
+              <input
+                type="text"
+                placeholder="例: 3泊4日のバンコク旅行"
+                value={newProject.description}
+                onChange={e => setNewProject({ ...newProject, description: e.target.value })}
+              />
+            </div>
+
+            <button
+              className="primary-button"
+              style={{ width: '100%', padding: '14px' }}
+              onClick={createProject}
+            >
+              作成する
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

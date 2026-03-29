@@ -1,0 +1,28 @@
+.settle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settle-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.settle-button {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(14, 168, 122, 0.12);
+  color: #0ea87a;
+  border: none;
+  cursor: pointer;
+}
+
+.settle-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,66 @@
+.expense-item {
+  cursor: pointer;
+}
+
+.expense-item:active {
+  opacity: 0.8;
+}
+
+.expense-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.expense-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.expense-amount {
+  font-size: 17px;
+  font-weight: 700;
+  color: #333;
+}
+
+.expense-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expense-payer {
+  font-size: 12px;
+  color: #666;
+  flex: 1;
+}
+
+.badge-all {
+  background: rgba(14, 168, 122, 0.12);
+  color: #0ea87a;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-custom {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.expense-per {
+  font-size: 12px;
+  color: #666;
+}
+
+.expense-per strong {
+  color: #0ea87a;
+  font-weight: 600;
+}
