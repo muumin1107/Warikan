@@ -13,26 +13,46 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const messaging = getMessaging(app)
 
+// Service Worker が active になるまで待つ
+function waitForActiveServiceWorker(registration) {
+  return new Promise((resolve) => {
+    if (registration.active) {
+      resolve(registration)
+      return
+    }
+    const sw = registration.installing || registration.waiting
+    if (!sw) { resolve(registration); return }
+    sw.addEventListener('statechange', function handler(e) {
+      if (e.target.state === 'activated') {
+        sw.removeEventListener('statechange', handler)
+        resolve(registration)
+      }
+    })
+  })
+}
+
 export async function registerPushToken(apiClient) {
   try {
-    // 通知許可を要求
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') {
       console.log('通知許可が拒否されました')
       return
     }
 
-    // Service Worker を手動で登録
-    let swRegistration
-    if ('serviceWorker' in navigator) {
-      swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      console.log('Service Worker registered:', swRegistration)
+    if (!('serviceWorker' in navigator)) {
+      console.log('Service Worker非対応ブラウザ')
+      return
     }
+
+    // Service Worker を登録して active になるまで待つ
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    await waitForActiveServiceWorker(registration)
+    console.log('Service Worker active:', registration.active?.state)
 
     // FCM トークンを取得
     const token = await getToken(messaging, {
-      vapidKey:            import.meta.env.VITE_FB_VAPID_KEY,
-      serviceWorkerRegistration: swRegistration,  // 手動登録したSWを渡す
+      vapidKey:                  import.meta.env.VITE_FB_VAPID_KEY,
+      serviceWorkerRegistration: registration,
     })
 
     if (!token) {
