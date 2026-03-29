@@ -15,19 +15,37 @@ export const messaging = getMessaging(app)
 
 export async function registerPushToken(apiClient) {
   try {
+    // 通知許可を要求
     const permission = await Notification.requestPermission()
-    if (permission !== 'granted') return
+    if (permission !== 'granted') {
+      console.log('通知許可が拒否されました')
+      return
+    }
 
+    // Service Worker を手動で登録
+    let swRegistration
+    if ('serviceWorker' in navigator) {
+      swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      console.log('Service Worker registered:', swRegistration)
+    }
+
+    // FCM トークンを取得
     const token = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_FB_VAPID_KEY
+      vapidKey:            import.meta.env.VITE_FB_VAPID_KEY,
+      serviceWorkerRegistration: swRegistration,  // 手動登録したSWを渡す
     })
-    if (!token) return
 
+    if (!token) {
+      console.log('FCM トークンが取得できませんでした')
+      return
+    }
+
+    // バックエンドに登録
     await apiClient.post('/users/device-token', {
       deviceToken: token,
-      platform: 'FCM'
+      platform:    'FCM'
     })
-    console.log('Push token registered')
+    console.log('Push token registered:', token.slice(0, 20) + '...')
   } catch (err) {
     console.error('Failed to register push token:', err)
   }
