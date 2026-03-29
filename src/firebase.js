@@ -24,14 +24,9 @@ onMessage(messaging, async (payload) => {
   // Service Worker 経由で通知を表示（Chromeフォアグラウンドでも表示される）
   const registration = await navigator.serviceWorker.getRegistration()
   if (registration) {
-    registration.showNotification(title, {
-      body,
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
-    })
+    registration.showNotification(title, { body })
   } else {
-    // フォールバック
-    new Notification(title, { body, icon: '/favicon.ico' })
+    new Notification(title, { body })
   }
 })
 
