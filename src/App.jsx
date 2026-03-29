@@ -10,6 +10,7 @@ import awsConfig from './aws-exports'
 import axios from 'axios'
 import { registerPushToken } from './firebase'
 import AuthPage from './pages/AuthPage'
+import NicknamePage from './pages/NicknamePage'
 import JoinPage from './pages/JoinPage'
 import Home from './pages/Home'
 import ProjectDetail from './pages/ProjectDetail'
@@ -26,6 +27,7 @@ export default function App() {
   const [currentUserId, setCurrentUserId]   = useState('')
   const [userEmail, setUserEmail]           = useState('')
   const [currentProject, setCurrentProject] = useState(null)
+  const [nickname, setNickname]             = useState(null)  // null=未確認, ''=未設定, 'xxx'=設定済み
   const [joinProjectId, setJoinProjectId]   = useState(() => {
     // URLの ?join=xxx を検出
     const params = new URLSearchParams(window.location.search)
@@ -42,6 +44,7 @@ export default function App() {
         setCurrentProject(null)
         setCurrentUserId('')
         setUserEmail('')
+        setNickname(null)
       }
     })
     return unsubscribe
@@ -62,6 +65,13 @@ export default function App() {
       setCurrentUserId(user.userId || '')
       setUserEmail(user.signInDetails?.loginId || '')
       setAuthState('auth')
+      // ニックネーム確認
+      try {
+        const res = await apiClientRef.current.get('/users/me')
+        setNickname(res.data.nickname || '')
+      } catch {
+        setNickname('')
+      }
       // ログイン後にPushトークンを登録（失敗してもログインは続行）
       registerPushToken(apiClientRef.current).catch(console.error)
     } catch {
@@ -79,6 +89,16 @@ export default function App() {
 
   if (authState === 'unauth') {
     return <AuthPage onAuthSuccess={checkSession} />
+  }
+
+  // ニックネーム未設定の場合は入力画面を表示
+  if (authState === 'auth' && nickname === '') {
+    return (
+      <NicknamePage
+        apiClient={apiClientRef.current}
+        onSaved={(name) => setNickname(name)}
+      />
+    )
   }
 
   // 招待リンク経由（?join=projectId）

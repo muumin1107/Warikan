@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+// userId からニックネームを取得するヘルパー
+function getName(members, userId) {
+  const m = members.find(m => m.userId === userId)
+  return m?.nickname || userId.slice(0, 8)
+}
+
 export default function ExpenseList({ expenses, members, apiClient, projectId, currentUserId, onRefresh }) {
   const [editTarget, setEditTarget]   = useState(null)  // 編集中のexpense
   const [editForm, setEditForm]       = useState({})
@@ -102,7 +108,7 @@ export default function ExpenseList({ expenses, members, apiClient, projectId, c
             </div>
             <div className="expense-bottom">
               <span className="expense-payer">
-                {expense.payerId.slice(0, 8)}が払った
+                {getName(members, expense.payerId)}が払った
               </span>
               <span className={`badge ${expense.splitType === 'ALL' ? 'badge-all' : 'badge-custom'}`}>
                 {expense.splitType === 'ALL' ? '全員' : `${expense.splitUserIds?.length}人`}
@@ -193,7 +199,7 @@ export default function ExpenseList({ expenses, members, apiClient, projectId, c
                       <div className="avatar" style={{ width: '24px', height: '24px', fontSize: '11px' }}>
                         {m.userId.slice(0, 1).toUpperCase()}
                       </div>
-                      <span>{m.userId.slice(0, 8)}</span>
+                      <span>{m.nickname || m.userId.slice(0, 8)}</span>
                       <span>{editForm.splitUserIds.includes(m.userId) ? '✅' : '○'}</span>
                     </div>
                   ))}

@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'  // ← 追加
 
+// userId からニックネームを取得するヘルパー
+function getName(members, userId) {
+  const m = members.find(m => m.userId === userId)
+  return m?.nickname || userId.slice(0, 8)
+}
+
 export default function Balance({ balance, members, apiClient, projectId, onSettled, currentUserId }) {
   const [settling, setSettling] = useState(null)
 
@@ -29,10 +35,10 @@ export default function Balance({ balance, members, apiClient, projectId, onSett
           <div key={b.userId} className="list-item">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="avatar">
-                {b.userId.slice(0, 1).toUpperCase()}
+                {getName(members, b.userId).slice(0, 1).toUpperCase()}
               </div>
               <span style={{ fontSize: '14px' }}>
-                {b.userId.slice(0, 8)}
+                {getName(members, b.userId)}
               </span>
             </div>
             <span
@@ -66,16 +72,16 @@ export default function Balance({ balance, members, apiClient, projectId, onSett
             <div className="settle-info">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div className="avatar" style={{ width: '28px', height: '28px', fontSize: '11px' }}>
-                  {s.fromUserId.slice(0, 1).toUpperCase()}
+                  {getName(members, s.fromUserId).slice(0, 1).toUpperCase()}
                 </div>
-                <span style={{ fontSize: '13px' }}>{s.fromUserId.slice(0, 8)}</span>
+                <span style={{ fontSize: '13px' }}>{getName(members, s.fromUserId)}</span>
               </div>
               <span style={{ color: '#999', fontSize: '18px' }}>→</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div className="avatar" style={{ width: '28px', height: '28px', fontSize: '11px' }}>
-                  {s.toUserId.slice(0, 1).toUpperCase()}
+                  {getName(members, s.toUserId).slice(0, 1).toUpperCase()}
                 </div>
-                <span style={{ fontSize: '13px' }}>{s.toUserId.slice(0, 8)}</span>
+                <span style={{ fontSize: '13px' }}>{getName(members, s.toUserId)}</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
