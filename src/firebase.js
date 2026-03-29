@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getMessaging, getToken } from 'firebase/messaging'
+import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FB_API_KEY,
@@ -12,6 +12,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const messaging = getMessaging(app)
+
+// フォアグラウンド時の通知表示
+onMessage(messaging, (payload) => {
+  console.log('フォアグラウンド通知受信:', payload)
+  const title = payload.notification?.title || 'Warikan'
+  const body  = payload.notification?.body  || ''
+  if (Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: '/vite.svg'
+    })
+  }
+})
 
 // Service Worker が active になるまで待つ
 function waitForActiveServiceWorker(registration) {
