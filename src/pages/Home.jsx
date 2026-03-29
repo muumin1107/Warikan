@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'  // ← 追加
+import { v4 as uuidv4 } from 'uuid'
 import './Home.css'
 
 export default function Home({ apiClient, user, onSelectProject }) {
-  const [projects, setProjects]     = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [showModal, setShowModal]   = useState(false)
-  const [newProject, setNewProject] = useState({ name: '', description: '' })
+  const [projects, setProjects]         = useState([])
+  const [invitations, setInvitations]   = useState([])
+  const [loading, setLoading]           = useState(true)
+  const [showModal, setShowModal]       = useState(false)
+  const [newProject, setNewProject]     = useState({ name: '', description: '' })
+  const [joiningId, setJoiningId]       = useState(null)
 
   useEffect(() => {
     fetchProjects()
@@ -16,6 +18,7 @@ export default function Home({ apiClient, user, onSelectProject }) {
     try {
       const res = await apiClient.get('/projects')
       setProjects(res.data.projects || [])
+      setInvitations(res.data.invitations || [])
     } catch (err) {
       console.error('Failed to fetch projects:', err)
     } finally {
@@ -27,8 +30,8 @@ export default function Home({ apiClient, user, onSelectProject }) {
     if (!newProject.name.trim()) return
     try {
       await apiClient.post('/projects', {
-        operation:   'CREATE_PROJECT',   // ← 追加
-        projectId:   uuidv4(),           // ← 追加
+        operation:   'CREATE_PROJECT',
+        projectId:   uuidv4(),
         name:        newProject.name,
         description: newProject.description,
       })
@@ -37,6 +40,18 @@ export default function Home({ apiClient, user, onSelectProject }) {
       setTimeout(fetchProjects, 2000)
     } catch (err) {
       console.error('Failed to create project:', err)
+    }
+  }
+
+  const joinProject = async (projectId) => {
+    setJoiningId(projectId)
+    try {
+      await apiClient.put(`/projects/${projectId}/join`, {})
+      await fetchProjects()
+    } catch (err) {
+      console.error('Failed to join project:', err)
+    } finally {
+      setJoiningId(null)
     }
   }
 
@@ -51,6 +66,31 @@ export default function Home({ apiClient, user, onSelectProject }) {
       </div>
 
       <div className="main-content">
+
+        {/* 招待通知バナー */}
+        {invitations.length > 0 && (
+          <div className="invitations-section">
+            <div className="section-label" style={{ marginBottom: '10px' }}>
+              📩 招待が届いています
+            </div>
+            {invitations.map(inv => (
+              <div key={inv.projectId} className="invitation-card">
+                <div className="invitation-info">
+                  <div className="invitation-name">{inv.name}</div>
+                  <div className="invitation-sub">プロジェクトに招待されています</div>
+                </div>
+                <button
+                  className="join-button"
+                  onClick={() => joinProject(inv.projectId)}
+                  disabled={joiningId === inv.projectId}
+                >
+                  {joiningId === inv.projectId ? '参加中...' : '参加する'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="section-label" style={{ marginBottom: '12px' }}>
           マイトリップ
         </div>

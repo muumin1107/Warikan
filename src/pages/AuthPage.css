@@ -1,0 +1,247 @@
+/* ── AuthPage.css ── */
+
+.auth-root {
+  min-height: 100vh;
+  background: #F7F5F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景の装飾円 */
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.auth-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.12;
+}
+.auth-bg-circle.c1 {
+  width: 420px;
+  height: 420px;
+  background: #0EA87A;
+  top: -120px;
+  right: -100px;
+}
+.auth-bg-circle.c2 {
+  width: 280px;
+  height: 280px;
+  background: #0EA87A;
+  bottom: -80px;
+  left: -60px;
+}
+.auth-bg-circle.c3 {
+  width: 160px;
+  height: 160px;
+  background: #059669;
+  top: 40%;
+  left: 20%;
+  opacity: 0.06;
+}
+
+/* ── コンテナ ── */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+  animation: authFadeIn .4s ease;
+}
+
+@keyframes authFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── ロゴ ── */
+.auth-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.auth-logo-text {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1C1917;
+  letter-spacing: -0.03em;
+  display: block;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.auth-logo-text em {
+  color: #0EA87A;
+  font-style: normal;
+}
+.auth-logo-sub {
+  font-size: 13px;
+  color: #78716C;
+}
+
+/* ── カード ── */
+.auth-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  padding: 28px 24px 32px;
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.06),
+    0 8px 32px rgba(0,0,0,.08);
+  border: 1px solid #E7E5E0;
+}
+
+.auth-card-header {
+  margin-bottom: 22px;
+}
+.auth-card-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1C1917;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.auth-card-header p {
+  font-size: 13px;
+  color: #78716C;
+}
+
+/* ── メッセージ ── */
+.auth-msg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.auth-msg-err {
+  background: rgba(239, 68, 68, .08);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, .2);
+}
+.auth-msg-ok {
+  background: rgba(14, 168, 122, .08);
+  color: #0EA87A;
+  border: 1px solid rgba(14, 168, 122, .2);
+}
+
+/* ── フォーム ── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.auth-field {
+  margin-bottom: 14px;
+}
+.auth-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #57534E;
+  margin-bottom: 6px;
+}
+.auth-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #E7E5E0;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #1C1917;
+  background: #FAFAF9;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.auth-field input:focus {
+  border-color: #0EA87A;
+  box-shadow: 0 0 0 3px rgba(14, 168, 122, .12);
+  background: #fff;
+}
+.auth-field input::placeholder {
+  color: #A8A29E;
+}
+
+/* コード入力 */
+.auth-code-input {
+  font-size: 24px !important;
+  letter-spacing: .3em;
+  text-align: center;
+  font-weight: 600 !important;
+}
+
+/* ── ボタン ── */
+.auth-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+}
+.auth-btn:active { transform: scale(.98); }
+.auth-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.auth-btn-primary {
+  background: #0EA87A;
+  color: #fff;
+  margin-top: 4px;
+}
+.auth-btn-primary:hover:not(:disabled) { background: #0d9a70; }
+
+.auth-btn-google {
+  background: #fff;
+  color: #1C1917;
+  border: 1.5px solid #C8C5BF;
+}
+.auth-btn-google:hover { background: #F7F5F0; }
+
+/* ── 区切り線 ── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #E7E5E0;
+}
+.auth-divider span {
+  font-size: 12px;
+  color: #A8A29E;
+}
+
+/* ── テキストリンク ── */
+.auth-link-btn {
+  background: none;
+  border: none;
+  color: #0EA87A;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 2px;
+  font-family: inherit;
+  transition: opacity .15s;
+}
+.auth-link-btn:hover { opacity: .75; }
+
+.auth-switch {
+  text-align: center;
+  font-size: 13px;
+  color: #78716C;
+  margin-top: 16px;
+}

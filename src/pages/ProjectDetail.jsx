@@ -10,7 +10,12 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
   const [expenses, setExpenses]   = useState([])
   const [balance, setBalance]     = useState({ balances: [], settlements: [] })
   const [loading, setLoading]     = useState(true)
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal]       = useState(false)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteEmail, setInviteEmail]   = useState('')
+  const [inviteStatus, setInviteStatus] = useState('') // '' | 'loading' | 'success' | 'error'
+  const [inviteMessage, setInviteMessage] = useState('')
+  const [inviteLink, setInviteLink]     = useState('')
   const [newExpense, setNewExpense] = useState({
     title: '',
     amountJPY: '',
@@ -40,6 +45,30 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
     } finally {
       setLoading(false)
     }
+  }
+
+  const inviteMember = async () => {
+    if (!inviteEmail.trim()) return
+    setInviteStatus('loading')
+    setInviteMessage('')
+    try {
+      await apiClient.post(`/projects/${project.projectId}/members`, { email: inviteEmail })
+      setInviteStatus('success')
+      setInviteMessage(`${inviteEmail} に招待しました。相手が招待リンクから参加するとメンバーに追加されます。`)
+      setInviteEmail('')
+    } catch (err) {
+      setInviteStatus('error')
+      setInviteMessage(err?.response?.data?.message || '招待に失敗しました')
+    }
+  }
+
+  const generateInviteLink = () => {
+    const baseUrl = window.location.origin
+    const link = `${baseUrl}?join=${project.projectId}`
+    setInviteLink(link)
+    navigator.clipboard.writeText(link).then(() => {
+      setInviteMessage('招待リンクをクリップボードにコピーしました！')
+    })
   }
 
   const createExpense = async () => {
@@ -142,6 +171,13 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
       {tab === 'expenses' && (
         <button className="fab" onClick={() => setShowModal(true)}>＋</button>
       )}
+      <button
+        className="invite-fab"
+        onClick={() => { setShowInviteModal(true); setInviteStatus(''); setInviteMessage(''); setInviteLink('') }}
+        title="メンバーを招待"
+      >
+        👥
+      </button>
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
@@ -242,6 +278,66 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
               onClick={createExpense}
             >
               追加する
+            </button>
+          </div>
+        </div>
+      )}
+      {/* メンバー招待モーダル */}
+      {showInviteModal && (
+        <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>メンバーを招待</h2>
+
+            {/* 招待リンク */}
+            <div className="invite-section">
+              <div className="invite-section-title">📎 招待リンクで招待</div>
+              <button
+                className="primary-button"
+                style={{ width: '100%', padding: '12px', marginTop: '8px' }}
+                onClick={generateInviteLink}
+              >
+                招待リンクをコピー
+              </button>
+              {inviteLink && (
+                <div className="invite-link-box">{inviteLink}</div>
+              )}
+            </div>
+
+            <div className="invite-divider"><span>または</span></div>
+
+            {/* メールアドレスで招待 */}
+            <div className="invite-section">
+              <div className="invite-section-title">✉️ メールアドレスで招待</div>
+              <div className="form-group" style={{ marginTop: '8px' }}>
+                <input
+                  type="email"
+                  placeholder="招待する人のメールアドレス"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                />
+              </div>
+              <button
+                className="primary-button"
+                style={{ width: '100%', padding: '12px' }}
+                onClick={inviteMember}
+                disabled={inviteStatus === 'loading'}
+              >
+                {inviteStatus === 'loading' ? '送信中...' : '招待する'}
+              </button>
+            </div>
+
+            {inviteMessage && (
+              <div className={`invite-message ${inviteStatus}`}>
+                {inviteMessage}
+              </div>
+            )}
+
+            <button
+              className="secondary-button"
+              style={{ width: '100%', padding: '12px', marginTop: '12px' }}
+              onClick={() => setShowInviteModal(false)}
+            >
+              閉じる
             </button>
           </div>
         </div>

@@ -166,3 +166,23 @@
   font-size: 13px;
   color: #999;
 }
+
+/* ── 招待通知 ── */
+.invitations-section { margin-bottom: 20px; }
+.invitation-card {
+  background: rgba(14, 168, 122, 0.06);
+  border: 1.5px solid rgba(14, 168, 122, 0.3);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.invitation-info { flex: 1; min-width: 0; }
+.invitation-name { font-size: 15px; font-weight: 700; color: #1C1917; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.invitation-sub { font-size: 12px; color: #0EA87A; font-weight: 500; }
+.join-button { padding: 9px 16px; background: #0EA87A; color: #fff; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all .15s; flex-shrink: 0; }
+.join-button:hover { background: #0d9a70; }
+.join-button:disabled { opacity: .6; cursor: not-allowed; }
