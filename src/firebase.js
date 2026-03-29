@@ -13,16 +13,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const messaging = getMessaging(app)
 
-// フォアグラウンド時の通知表示
-onMessage(messaging, (payload) => {
+// フォアグラウンド時の通知表示（Service Worker経由）
+onMessage(messaging, async (payload) => {
   console.log('フォアグラウンド通知受信:', payload)
   const title = payload.notification?.title || 'Warikan'
   const body  = payload.notification?.body  || ''
-  if (Notification.permission === 'granted') {
-    new Notification(title, {
+
+  if (Notification.permission !== 'granted') return
+
+  // Service Worker 経由で通知を表示（Chromeフォアグラウンドでも表示される）
+  const registration = await navigator.serviceWorker.getRegistration()
+  if (registration) {
+    registration.showNotification(title, {
       body,
-      icon: '/favicon.ico'
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
     })
+  } else {
+    // フォールバック
+    new Notification(title, { body, icon: '/favicon.ico' })
   }
 })
 
@@ -57,12 +66,10 @@ export async function registerPushToken(apiClient) {
       return
     }
 
-    // Service Worker を登録して active になるまで待つ
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
     await waitForActiveServiceWorker(registration)
     console.log('Service Worker active:', registration.active?.state)
 
-    // FCM トークンを取得
     const token = await getToken(messaging, {
       vapidKey:                  import.meta.env.VITE_FB_VAPID_KEY,
       serviceWorkerRegistration: registration,
@@ -73,7 +80,6 @@ export async function registerPushToken(apiClient) {
       return
     }
 
-    // バックエンドに登録
     await apiClient.post('/users/device-token', {
       deviceToken: token,
       platform:    'FCM'
