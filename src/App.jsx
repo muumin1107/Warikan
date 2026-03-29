@@ -8,6 +8,7 @@ import {
 import { Hub } from 'aws-amplify/utils'
 import awsConfig from './aws-exports'
 import axios from 'axios'
+import { registerPushToken } from './firebase'
 import AuthPage from './pages/AuthPage'
 import JoinPage from './pages/JoinPage'
 import Home from './pages/Home'
@@ -61,6 +62,8 @@ export default function App() {
       setCurrentUserId(user.userId || '')
       setUserEmail(user.signInDetails?.loginId || '')
       setAuthState('auth')
+      // ログイン後にPushトークンを登録（失敗してもログインは続行）
+      registerPushToken(apiClientRef.current).catch(console.error)
     } catch {
       setAuthState('unauth')
     }
