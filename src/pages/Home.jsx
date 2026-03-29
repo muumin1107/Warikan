@@ -17,7 +17,7 @@ export default function Home({ apiClient, user, onSelectProject }) {
   const fetchProjects = async () => {
     try {
       const res = await apiClient.get('/projects')
-      setProjects(res.data.projects || [])
+      setProjects(res.data.projects || [])  // active + closed 両方含む
       setInvitations(res.data.invitations || [])
     } catch (err) {
       console.error('Failed to fetch projects:', err)
@@ -92,16 +92,16 @@ export default function Home({ apiClient, user, onSelectProject }) {
         )}
 
         <div className="section-label" style={{ marginBottom: '12px' }}>
-          マイトリップ
+          進行中
         </div>
 
-        {projects.length === 0 ? (
+        {projects.filter(p => p.status !== 'closed').length === 0 ? (
           <div className="empty-state">
-            <p>まだプロジェクトがありません</p>
+            <p>進行中のプロジェクトがありません</p>
             <p className="empty-hint">＋ボタンから作成してください</p>
           </div>
         ) : (
-          projects.map(project => (
+          projects.filter(p => p.status !== 'closed').map(project => (
             <div
               key={project.projectId}
               className="project-card"
@@ -117,12 +117,38 @@ export default function Home({ apiClient, user, onSelectProject }) {
                 <span className="badge badge-active">進行中</span>
               </div>
               <div className="project-card-bottom">
-                <span className="project-date">
-                  {project.createdAt?.slice(0, 10)}
-                </span>
+                <span className="project-date">{project.createdAt?.slice(0, 10)}</span>
               </div>
             </div>
           ))
+        )}
+
+        {projects.filter(p => p.status === 'closed').length > 0 && (
+          <>
+            <div className="section-label" style={{ marginBottom: '12px', marginTop: '20px' }}>
+              完了
+            </div>
+            {projects.filter(p => p.status === 'closed').map(project => (
+              <div
+                key={project.projectId}
+                className="project-card project-card-closed"
+                onClick={() => onSelectProject(project)}
+              >
+                <div className="project-card-top">
+                  <div>
+                    <div className="project-name">{project.name}</div>
+                    {project.description && (
+                      <div className="project-description">{project.description}</div>
+                    )}
+                  </div>
+                  <span className="badge badge-closed">完了</span>
+                </div>
+                <div className="project-card-bottom">
+                  <span className="project-date">{project.createdAt?.slice(0, 10)}</span>
+                </div>
+              </div>
+            ))}
+          </>
         )}
       </div>
 

@@ -186,3 +186,26 @@
 .join-button { padding: 9px 16px; background: #0EA87A; color: #fff; border: none; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all .15s; flex-shrink: 0; }
 .join-button:hover { background: #0d9a70; }
 .join-button:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── 完了プロジェクト ── */
+.project-card-closed {
+  opacity: 0.7;
+}
+.badge-closed {
+  background: #F0EDE8;
+  color: #A8A29E;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* バッジ共通 */
+.badge-active {
+  background: rgba(14, 168, 122, 0.12);
+  color: #0ea87a;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}

@@ -9,7 +9,10 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
   const [members, setMembers]     = useState([])
   const [expenses, setExpenses]   = useState([])
   const [balance, setBalance]     = useState({ balances: [], settlements: [] })
-  const [loading, setLoading]     = useState(true)
+  const [loading, setLoading]         = useState(true)
+  const [projectStatus, setProjectStatus] = useState('active')
+  const [projectOwnerId, setProjectOwnerId] = useState('')
+  const [statusChanging, setStatusChanging] = useState(false)
   const [showModal, setShowModal]       = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail]   = useState('')
@@ -40,10 +43,27 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
       setMembers(projRes.data.members || [])
       setExpenses(expRes.data.expenses || [])
       setBalance(balRes.data)
+      setProjectStatus(projRes.data.status || 'active')
+      setProjectOwnerId(projRes.data.ownerId || '')
     } catch (err) {
       console.error('Failed to fetch:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const toggleStatus = async () => {
+    const newStatus = projectStatus === 'active' ? 'closed' : 'active'
+    const label = newStatus === 'closed' ? '終了' : '再開'
+    if (!window.confirm(`プロジェクトを${label}しますか？`)) return
+    setStatusChanging(true)
+    try {
+      await apiClient.put(`/projects/${project.projectId}/status`, { status: newStatus })
+      setProjectStatus(newStatus)
+    } catch (err) {
+      console.error('Failed to change status:', err)
+    } finally {
+      setStatusChanging(false)
     }
   }
 
@@ -132,10 +152,33 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
           ←
         </button>
         <h1 style={{ fontSize: '16px' }}>{project.name}</h1>
-        <div style={{ width: '40px' }} />
+        {currentUserId === projectOwnerId && (
+          <button
+            onClick={toggleStatus}
+            disabled={statusChanging}
+            style={{
+              fontSize: '12px', fontWeight: '600', padding: '5px 10px',
+              borderRadius: '12px', border: 'none', cursor: 'pointer',
+              background: projectStatus === 'active' ? 'rgba(239,68,68,.1)' : 'rgba(14,168,122,.1)',
+              color: projectStatus === 'active' ? '#DC2626' : '#0EA87A',
+              fontFamily: 'inherit',
+            }}
+          >
+            {statusChanging ? '...' : projectStatus === 'active' ? '終了' : '再開'}
+          </button>
+        )}
       </div>
 
       <div className="main-content">
+        {projectStatus === 'closed' && (
+          <div style={{
+            background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)',
+            borderRadius: '12px', padding: '10px 14px', marginBottom: '12px',
+            fontSize: '13px', color: '#DC2626', fontWeight: '500', textAlign: 'center'
+          }}>
+            🔒 このプロジェクトは終了しています（閲覧のみ）
+          </div>
+        )}
         <div className="tabs">
           <button
             className={`tab ${tab === 'expenses' ? 'active' : ''}`}
@@ -172,16 +215,16 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
         )}
       </div>
 
-      {tab === 'expenses' && (
+      {tab === 'expenses' && projectStatus === 'active' && (
         <button className="fab" onClick={() => setShowModal(true)}>＋</button>
       )}
-      <button
+      {projectStatus === 'active' && <button
         className="invite-fab"
         onClick={() => { setShowInviteModal(true); setInviteStatus(''); setInviteMessage(''); setInviteLink('') }}
         title="メンバーを招待"
       >
         👥
-      </button>
+      </button>}
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
