@@ -1,42 +1,35 @@
 .expense-item {
-  cursor: pointer;
+  cursor: default;
 }
-
 .expense-item:active {
   opacity: 0.8;
 }
-
 .expense-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 8px;
 }
-
 .expense-title {
   font-size: 15px;
   font-weight: 600;
   color: #333;
 }
-
 .expense-amount {
   font-size: 17px;
   font-weight: 700;
   color: #333;
 }
-
 .expense-bottom {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-
 .expense-payer {
   font-size: 12px;
   color: #666;
   flex: 1;
 }
-
 .badge-all {
   background: rgba(14, 168, 122, 0.12);
   color: #0ea87a;
@@ -45,7 +38,6 @@
   font-size: 11px;
   font-weight: 600;
 }
-
 .badge-custom {
   background: rgba(245, 158, 11, 0.12);
   color: #f59e0b;
@@ -54,13 +46,47 @@
   font-size: 11px;
   font-weight: 600;
 }
-
 .expense-per {
   font-size: 12px;
   color: #666;
 }
-
 .expense-per strong {
   color: #0ea87a;
   font-weight: 600;
 }
+
+/* ── 編集・削除ボタン ── */
+.expense-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #F0EDE8;
+}
+.expense-edit-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #E7E5E0;
+  background: #F7F5F0;
+  color: #57534E;
+  font-family: inherit;
+  transition: all .15s;
+}
+.expense-edit-btn:hover { background: #EEECE8; }
+.expense-delete-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid rgba(239,68,68,.25);
+  background: rgba(239,68,68,.06);
+  color: #DC2626;
+  font-family: inherit;
+  transition: all .15s;
+}
+.expense-delete-btn:hover { background: rgba(239,68,68,.12); }
+.expense-delete-btn:disabled { opacity: .5; cursor: not-allowed; }

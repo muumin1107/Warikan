@@ -155,6 +155,10 @@ export default function ProjectDetail({ apiClient, project, onBack, currentUserI
           <ExpenseList
             expenses={expenses}
             members={members}
+            apiClient={apiClient}
+            projectId={project.projectId}
+            currentUserId={currentUserId}
+            onRefresh={fetchAll}
           />
         ) : (
           <Balance
