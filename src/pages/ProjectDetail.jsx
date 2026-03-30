@@ -353,6 +353,7 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
             projectId={project.projectId}
             currentUserId={currentUserId}
             onRefresh={fetchAll}
+            isProjectClosed={isClosed}
           />
         ) : (
           <Balance

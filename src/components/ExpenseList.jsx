@@ -47,10 +47,11 @@ function getName(members, userId) {
  * @param {{
  *   expenses:      Array<object>,
  *   members:       Array<{ userId: string, nickname?: string }>,
- *   apiClient:     import('axios').AxiosInstance,
- *   projectId:     string,
- *   currentUserId: string,
- *   onRefresh:     () => void,
+ *   apiClient:       import('axios').AxiosInstance,
+ *   projectId:       string,
+ *   currentUserId:   string,
+ *   onRefresh:       () => void,
+ *   isProjectClosed: boolean,  プロジェクト終了中は編集・削除を非表示にする
  * }} props
  */
 export default function ExpenseList({
@@ -60,6 +61,7 @@ export default function ExpenseList({
   projectId,
   currentUserId,
   onRefresh,
+  isProjectClosed = false,
 }) {
   // ── 編集モーダル
   const [editTarget, setEditTarget] = useState(null)
@@ -240,8 +242,10 @@ export default function ExpenseList({
                 {expense.splitType === 'ALL' ? '全員' : `${splitCount}人`}
               </span>
 
-              {/* 自分の支払いのみ編集・削除を表示 */}
-              {isMyExpense && (
+              {/* 自分の支払い かつ プロジェクト進行中のみ編集・削除を表示
+                  isProjectClosed === true のときはボタン自体を非表示にする
+                  （disabled ではなく非表示にすることで終了状態を明確にする） */}
+              {isMyExpense && !isProjectClosed && (
                 <div className="expense-actions">
                   <button
                     className="expense-edit-btn"
