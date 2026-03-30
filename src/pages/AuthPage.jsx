@@ -9,8 +9,10 @@
  *   forgot  - パスワードリセット申請（メール送信）
  *   reset   - 新しいパスワード設定（forgot 後）
  *
- * Google OAuth は signInWithRedirect() を使い、Amplify の Hub が
- * signedIn イベントを検知して App.jsx 側で onAuthSuccess() を呼ぶ。
+ * 変更履歴：
+ *   - パスワード強度チェッカーを signup / reset モードに追加
+ *   - 「パスワードを忘れた場合」をパスワードラベル行の右側に移動
+ *   - ロゴ配色を CSS 変数で統一
  */
 
 import { useState } from 'react'
@@ -26,38 +28,47 @@ import {
 import './AuthPage.css'
 
 // ─────────────────────────────────────────────
-// 型定義（JSDoc）
+// 定数
 // ─────────────────────────────────────────────
-/**
- * @typedef {'signin' | 'signup' | 'confirm' | 'forgot' | 'reset'} AuthMode
- */
+
+/** @typedef {'signin' | 'signup' | 'confirm' | 'forgot' | 'reset'} AuthMode */
 
 /** @type {Record<AuthMode, { title: string; subtitle: string | ((email: string) => string) }>} */
 const MODE_META = {
-  signin:  { title: 'ログイン',              subtitle: 'アカウントにサインイン' },
-  signup:  { title: 'アカウント作成',         subtitle: 'メールアドレスで登録' },
-  confirm: { title: 'メール確認',             subtitle: (email) => `${email} に送信されたコードを入力` },
-  forgot:  { title: 'パスワードをリセット',   subtitle: 'メールにリセットコードを送信します' },
-  reset:   { title: '新しいパスワード',       subtitle: (email) => `${email} に送信されたコードを入力` },
+  signin:  { title: 'ログイン',             subtitle: 'アカウントにサインイン' },
+  signup:  { title: 'アカウント作成',        subtitle: 'メールアドレスで登録' },
+  confirm: { title: 'メール確認',            subtitle: (email) => `${email} に送信されたコードを入力` },
+  forgot:  { title: 'パスワードをリセット',  subtitle: 'メールにリセットコードを送信します' },
+  reset:   { title: '新しいパスワード',      subtitle: (email) => `${email} に送信されたコードを入力` },
 }
+
+/**
+ * Cognito のパスワードポリシー条件。
+ * signup / reset モードのパスワード入力欄の下にリアルタイム表示する。
+ */
+const PASSWORD_RULES = [
+  { label: '8文字以上',   test: (v) => v.length >= 8 },
+  { label: '大文字を含む', test: (v) => /[A-Z]/.test(v) },
+  { label: '小文字を含む', test: (v) => /[a-z]/.test(v) },
+  { label: '数字を含む',   test: (v) => /[0-9]/.test(v) },
+  { label: '記号を含む',   test: (v) => /[^A-Za-z0-9]/.test(v) },
+]
 
 // ─────────────────────────────────────────────
 // メインコンポーネント
 // ─────────────────────────────────────────────
-/**
- * @param {{ onAuthSuccess: () => void }} props
- */
+
+/** @param {{ onAuthSuccess: () => void }} props */
 export default function AuthPage({ onAuthSuccess }) {
-  // ── 現在の認証フローのモード
   /** @type {[AuthMode, Function]} */
   const [mode, setMode] = useState('signin')
 
   // ── フォーム入力値
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
-  const [confirm,  setConfirm]  = useState('')  // パスワード確認 / パスワードリセット確認
-  const [code,     setCode]     = useState('')  // 確認コード
-  const [newPass,  setNewPass]  = useState('')  // リセット後の新パスワード
+  const [confirm,  setConfirm]  = useState('')
+  const [code,     setCode]     = useState('')
+  const [newPass,  setNewPass]  = useState('')
 
   // ── UI 状態
   const [loading, setLoading] = useState(false)
@@ -68,26 +79,15 @@ export default function AuthPage({ onAuthSuccess }) {
   // ユーティリティ
   // ─────────────────────────────────────────────
 
-  /** エラー・インフォメッセージをクリア */
-  const clearMessages = () => {
-    setError('')
-    setInfo('')
-  }
+  const clearMessages = () => { setError(''); setInfo('') }
 
-  /**
-   * モードを切り替える（メッセージもクリア）
-   * @param {AuthMode} nextMode
-   */
-  const switchMode = (nextMode) => {
-    clearMessages()
-    setMode(nextMode)
-  }
+  /** モードを切り替えてメッセージをクリア */
+  const switchMode = (nextMode) => { clearMessages(); setMode(nextMode) }
 
   // ─────────────────────────────────────────────
   // 認証ハンドラー
   // ─────────────────────────────────────────────
 
-  /** サインイン（メール/パスワード） */
   const handleSignIn = async (e) => {
     e.preventDefault()
     clearMessages()
@@ -102,23 +102,13 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  /** 新規アカウント登録 */
   const handleSignUp = async (e) => {
     e.preventDefault()
     clearMessages()
-
-    if (password !== confirm) {
-      setError('パスワードが一致しません')
-      return
-    }
-
+    if (password !== confirm) { setError('パスワードが一致しません'); return }
     setLoading(true)
     try {
-      await signUp({
-        username: email,
-        password,
-        options: { userAttributes: { email } },
-      })
+      await signUp({ username: email, password, options: { userAttributes: { email } } })
       setInfo('確認コードをメールに送信しました')
       setMode('confirm')
     } catch (err) {
@@ -128,7 +118,6 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  /** メールアドレスの確認コードを検証 */
   const handleConfirm = async (e) => {
     e.preventDefault()
     clearMessages()
@@ -144,7 +133,6 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  /** 確認コードを再送信 */
   const handleResend = async () => {
     clearMessages()
     try {
@@ -155,7 +143,6 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  /** パスワードリセット申請（リセットコードをメール送信） */
   const handleForgot = async (e) => {
     e.preventDefault()
     clearMessages()
@@ -171,23 +158,13 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  /** 新しいパスワードを確定（リセットコードと一緒に送信） */
   const handleReset = async (e) => {
     e.preventDefault()
     clearMessages()
-
-    if (newPass !== confirm) {
-      setError('パスワードが一致しません')
-      return
-    }
-
+    if (newPass !== confirm) { setError('パスワードが一致しません'); return }
     setLoading(true)
     try {
-      await confirmResetPassword({
-        username: email,
-        confirmationCode: code,
-        newPassword: newPass,
-      })
+      await confirmResetPassword({ username: email, confirmationCode: code, newPassword: newPass })
       setInfo('パスワードを変更しました')
       setMode('signin')
     } catch (err) {
@@ -197,7 +174,6 @@ export default function AuthPage({ onAuthSuccess }) {
     }
   }
 
-  /** Google OAuth でサインイン（リダイレクト方式） */
   const handleGoogle = async () => {
     clearMessages()
     try {
@@ -208,19 +184,17 @@ export default function AuthPage({ onAuthSuccess }) {
   }
 
   // ─────────────────────────────────────────────
-  // カードヘッダー用のタイトル・サブタイトルを生成
+  // ヘッダーメタ情報
   // ─────────────────────────────────────────────
   const meta     = MODE_META[mode]
-  const subtitle = typeof meta.subtitle === 'function'
-    ? meta.subtitle(email)
-    : meta.subtitle
+  const subtitle = typeof meta.subtitle === 'function' ? meta.subtitle(email) : meta.subtitle
 
   // ─────────────────────────────────────────────
   // レンダー
   // ─────────────────────────────────────────────
   return (
     <div className="auth-root">
-      {/* 背景装飾（グラデーション円） */}
+      {/* 背景装飾 */}
       <div className="auth-bg" aria-hidden="true">
         <div className="auth-bg-circle c1" />
         <div className="auth-bg-circle c2" />
@@ -228,7 +202,9 @@ export default function AuthPage({ onAuthSuccess }) {
       </div>
 
       <div className="auth-container">
-        {/* ── ロゴ */}
+        {/* ── ロゴ
+            "Wari" は --auth-logo-base 色（統一済み）、
+            "kan" は --auth-green でブランドアクセント */}
         <div className="auth-logo">
           <span className="auth-logo-text">Wari<em>kan</em></span>
           <p className="auth-logo-sub">旅行の立て替えを、スマートに精算</p>
@@ -236,17 +212,15 @@ export default function AuthPage({ onAuthSuccess }) {
 
         {/* ── カード */}
         <div className="auth-card">
-          {/* カードヘッダー：モードに応じたタイトル */}
           <div className="auth-card-header">
             <h2>{meta.title}</h2>
             <p>{subtitle}</p>
           </div>
 
-          {/* メッセージ表示（エラー / インフォ） */}
           {error && <div className="auth-msg auth-msg-err" role="alert">{error}</div>}
           {info  && <div className="auth-msg auth-msg-ok"  role="status">{info}</div>}
 
-          {/* ── モード: ログイン */}
+          {/* ── ログイン */}
           {mode === 'signin' && (
             <form onSubmit={handleSignIn} className="auth-form">
               <div className="auth-field">
@@ -261,8 +235,19 @@ export default function AuthPage({ onAuthSuccess }) {
                   autoComplete="email"
                 />
               </div>
+
+              {/* パスワード欄：ラベル行に「パスワードを忘れた場合」を右寄せ配置 */}
               <div className="auth-field">
-                <label htmlFor="signin-password">パスワード</label>
+                <div className="auth-field-label-row">
+                  <label htmlFor="signin-password">パスワード</label>
+                  <button
+                    type="button"
+                    className="auth-link-btn auth-link-forgot"
+                    onClick={() => switchMode('forgot')}
+                  >
+                    パスワードを忘れた場合
+                  </button>
+                </div>
                 <input
                   id="signin-password"
                   type="password"
@@ -274,36 +259,21 @@ export default function AuthPage({ onAuthSuccess }) {
                 />
               </div>
 
-              {/* パスワード忘れリンク */}
-              <button
-                type="button"
-                className="auth-link-btn auth-link-forgot"
-                onClick={() => switchMode('forgot')}
-              >
-                パスワードを忘れた場合
-              </button>
-
               <button type="submit" className="auth-btn auth-btn-primary" disabled={loading}>
                 {loading ? '処理中...' : 'ログイン'}
               </button>
-
               <div className="auth-divider"><span>または</span></div>
-
               <button type="button" className="auth-btn auth-btn-google" onClick={handleGoogle}>
-                <GoogleIcon />
-                Googleでログイン
+                <GoogleIcon />Googleでログイン
               </button>
-
               <p className="auth-switch">
                 アカウントをお持ちでない方は
-                <button type="button" className="auth-link-btn" onClick={() => switchMode('signup')}>
-                  新規登録
-                </button>
+                <button type="button" className="auth-link-btn" onClick={() => switchMode('signup')}>新規登録</button>
               </p>
             </form>
           )}
 
-          {/* ── モード: 新規登録 */}
+          {/* ── 新規登録 */}
           {mode === 'signup' && (
             <form onSubmit={handleSignUp} className="auth-form">
               <div className="auth-field">
@@ -318,6 +288,8 @@ export default function AuthPage({ onAuthSuccess }) {
                   autoComplete="email"
                 />
               </div>
+
+              {/* パスワード欄 + 強度チェッカー */}
               <div className="auth-field">
                 <label htmlFor="signup-password">パスワード</label>
                 <input
@@ -329,7 +301,12 @@ export default function AuthPage({ onAuthSuccess }) {
                   required
                   autoComplete="new-password"
                 />
+                {/* 入力が始まったら条件チェッカーを表示 */}
+                {password.length > 0 && (
+                  <PasswordStrengthChecker value={password} />
+                )}
               </div>
+
               <div className="auth-field">
                 <label htmlFor="signup-confirm">パスワード（確認）</label>
                 <input
@@ -346,24 +323,18 @@ export default function AuthPage({ onAuthSuccess }) {
               <button type="submit" className="auth-btn auth-btn-primary" disabled={loading}>
                 {loading ? '処理中...' : '登録する'}
               </button>
-
               <div className="auth-divider"><span>または</span></div>
-
               <button type="button" className="auth-btn auth-btn-google" onClick={handleGoogle}>
-                <GoogleIcon />
-                Googleで登録
+                <GoogleIcon />Googleで登録
               </button>
-
               <p className="auth-switch">
                 すでにアカウントをお持ちの方は
-                <button type="button" className="auth-link-btn" onClick={() => switchMode('signin')}>
-                  ログイン
-                </button>
+                <button type="button" className="auth-link-btn" onClick={() => switchMode('signin')}>ログイン</button>
               </p>
             </form>
           )}
 
-          {/* ── モード: メール確認コード入力 */}
+          {/* ── 確認コード */}
           {mode === 'confirm' && (
             <form onSubmit={handleConfirm} className="auth-form">
               <div className="auth-field">
@@ -381,21 +352,17 @@ export default function AuthPage({ onAuthSuccess }) {
                   className="auth-code-input"
                 />
               </div>
-
               <button type="submit" className="auth-btn auth-btn-primary" disabled={loading}>
                 {loading ? '処理中...' : '確認する'}
               </button>
-
               <p className="auth-switch">
                 コードが届かない場合は
-                <button type="button" className="auth-link-btn" onClick={handleResend}>
-                  再送する
-                </button>
+                <button type="button" className="auth-link-btn" onClick={handleResend}>再送する</button>
               </p>
             </form>
           )}
 
-          {/* ── モード: パスワードリセット申請 */}
+          {/* ── パスワードリセット申請 */}
           {mode === 'forgot' && (
             <form onSubmit={handleForgot} className="auth-form">
               <div className="auth-field">
@@ -410,11 +377,9 @@ export default function AuthPage({ onAuthSuccess }) {
                   autoComplete="email"
                 />
               </div>
-
               <button type="submit" className="auth-btn auth-btn-primary" disabled={loading}>
                 {loading ? '送信中...' : 'リセットコードを送信'}
               </button>
-
               <p className="auth-switch">
                 <button type="button" className="auth-link-btn" onClick={() => switchMode('signin')}>
                   ログインに戻る
@@ -423,7 +388,7 @@ export default function AuthPage({ onAuthSuccess }) {
             </form>
           )}
 
-          {/* ── モード: 新しいパスワード設定 */}
+          {/* ── 新しいパスワード設定 */}
           {mode === 'reset' && (
             <form onSubmit={handleReset} className="auth-form">
               <div className="auth-field">
@@ -440,6 +405,8 @@ export default function AuthPage({ onAuthSuccess }) {
                   className="auth-code-input"
                 />
               </div>
+
+              {/* 新パスワード欄 + 強度チェッカー */}
               <div className="auth-field">
                 <label htmlFor="reset-password">新しいパスワード</label>
                 <input
@@ -451,7 +418,11 @@ export default function AuthPage({ onAuthSuccess }) {
                   required
                   autoComplete="new-password"
                 />
+                {newPass.length > 0 && (
+                  <PasswordStrengthChecker value={newPass} />
+                )}
               </div>
+
               <div className="auth-field">
                 <label htmlFor="reset-confirm">パスワード（確認）</label>
                 <input
@@ -471,9 +442,7 @@ export default function AuthPage({ onAuthSuccess }) {
             </form>
           )}
         </div>
-        {/* /.auth-card */}
       </div>
-      {/* /.auth-container */}
     </div>
   )
 }
@@ -481,6 +450,44 @@ export default function AuthPage({ onAuthSuccess }) {
 // ─────────────────────────────────────────────
 // サブコンポーネント
 // ─────────────────────────────────────────────
+
+/**
+ * パスワード強度チェッカー。
+ * PASSWORD_RULES の各条件をリアルタイムで検証し、
+ * 達成済み（緑）/ 未達成（グレー）でインジケーターを表示する。
+ * @param {{ value: string }} props
+ */
+function PasswordStrengthChecker({ value }) {
+  return (
+    <ul className="pwd-rules" aria-label="パスワード条件">
+      {PASSWORD_RULES.map((rule) => {
+        const met = rule.test(value)
+        return (
+          <li key={rule.label} className={`pwd-rule ${met ? 'pwd-rule--met' : ''}`}>
+            {/* SVG チェックマーク（絵文字を使わない） */}
+            <svg
+              className="pwd-rule-icon"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle cx="8" cy="8" r="7" strokeWidth="1.5" />
+              {met && (
+                <path
+                  d="M5 8l2 2 4-4"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </svg>
+            <span>{rule.label}</span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
 
 /** Google ブランドアイコン（SVG） */
 function GoogleIcon() {
@@ -495,19 +502,17 @@ function GoogleIcon() {
 }
 
 // ─────────────────────────────────────────────
-// ユーティリティ関数
+// ユーティリティ
 // ─────────────────────────────────────────────
 
 /**
  * Cognito のエラーを日本語のユーザー向けメッセージに変換する。
- * err.name（Amplify v6）または err.code（旧形式）でマッチング。
  * @param {Error & { name?: string; code?: string }} err
- * @returns {string} 日本語エラーメッセージ
+ * @returns {string}
  */
 function friendlyError(err) {
   const code = err?.name || err?.code || ''
   const msg  = err?.message || ''
-
   const messages = {
     UserNotFoundException:    'メールアドレスが見つかりません',
     NotAuthorizedException:   'メールアドレスまたはパスワードが正しくありません',
@@ -517,7 +522,6 @@ function friendlyError(err) {
     ExpiredCodeException:     '確認コードの有効期限が切れています。再送してください',
     LimitExceededException:   'リクエスト回数の上限に達しました。しばらく待ってから再試行してください',
   }
-
   if (messages[code]) return messages[code]
   if (msg.includes('Password did not conform')) {
     return 'パスワードは8文字以上で英数字・記号を含めてください'

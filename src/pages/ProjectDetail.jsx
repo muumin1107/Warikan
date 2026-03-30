@@ -479,9 +479,8 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
                         <span className="member-check-name">
                           {m.nickname || m.userId.slice(0, 8)}
                         </span>
-                        <span className="member-check-icon" aria-hidden="true">
-                          {isChecked ? '✅' : '○'}
-                        </span>
+                        {/* SVGチェックアイコン（絵文字を使わない） */}
+                        <MemberCheckSvg checked={isChecked} />
                       </div>
                     )
                   })}
@@ -525,31 +524,49 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
             <div className="modal-handle" aria-hidden="true" />
             <h2>メンバーを招待</h2>
 
-            {/* 招待リンク */}
-            <div className="invite-section">
-              <div className="invite-section-title">📎 招待リンクで招待</div>
+            {/* ── 招待リンクブロック */}
+            <div className="invite-block">
+              <div className="invite-block-label">招待リンク</div>
+              <p className="invite-block-desc">
+                リンクを共有するだけでメンバーを招待できます
+              </p>
               <button
-                className="primary-button pd-modal-invite-btn"
+                className={`invite-copy-btn ${inviteLink ? 'invite-copy-btn--copied' : ''}`}
                 onClick={generateInviteLink}
               >
-                招待リンクをコピー
+                {inviteLink ? (
+                  <>
+                    <CheckSvg />
+                    コピーしました
+                  </>
+                ) : (
+                  <>
+                    <LinkSvg />
+                    リンクをコピー
+                  </>
+                )}
               </button>
+              {/* コピー済みのURLをプレビュー表示 */}
               {inviteLink && (
-                <div className="invite-link-box">{inviteLink}</div>
+                <div className="invite-link-preview">{inviteLink}</div>
               )}
             </div>
 
             <div className="invite-divider"><span>または</span></div>
 
-            {/* メールアドレスで招待 */}
-            <div className="invite-section">
-              <div className="invite-section-title">✉️ メールアドレスで招待</div>
-              <div className="form-group">
+            {/* ── メールアドレスで招待ブロック */}
+            <div className="invite-block">
+              <div className="invite-block-label">メールアドレスで招待</div>
+              <p className="invite-block-desc">
+                登録済みのメールアドレスを入力してください
+              </p>
+              <div className="form-group" style={{ marginBottom: '10px' }}>
                 <input
                   type="email"
-                  placeholder="招待する人のメールアドレス"
+                  placeholder="example@email.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && inviteMember()}
                 />
               </div>
               <button
@@ -562,17 +579,22 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
             </div>
 
             {/* 招待結果メッセージ */}
-            {inviteMessage && (
+            {inviteMessage && inviteStatus !== 'success' && (
               <div
                 className={`invite-message invite-message--${inviteStatus}`}
-                role={inviteStatus === 'error' ? 'alert' : 'status'}
+                role="alert"
               >
+                {inviteMessage}
+              </div>
+            )}
+            {inviteMessage && inviteStatus === 'success' && inviteEmail === '' && (
+              <div className="invite-message invite-message--success" role="status">
                 {inviteMessage}
               </div>
             )}
 
             <button
-              className="secondary-button pd-modal-close-btn"
+              className="invite-close-btn"
               onClick={closeInviteModal}
             >
               閉じる
@@ -581,5 +603,67 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
         </div>
       )}
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// SVG アイコンコンポーネント
+// 絵文字を使わず、スタイルに一貫性を持たせる
+// ─────────────────────────────────────────────
+
+/**
+ * メンバー選択チェックアイコン。
+ * checked=true  → 塗りつぶし円 + 白チェックマーク
+ * checked=false → グレーの円枠のみ
+ * @param {{ checked: boolean }} props
+ */
+function MemberCheckSvg({ checked }) {
+  return (
+    <svg
+      className="member-check-svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      {checked ? (
+        <>
+          <circle cx="10" cy="10" r="10" fill="var(--color-primary)" />
+          <path
+            d="M6 10l3 3 5-5"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      ) : (
+        <circle
+          cx="10" cy="10" r="9"
+          stroke="var(--color-border)"
+          strokeWidth="1.5"
+        />
+      )}
+    </svg>
+  )
+}
+
+/** リンクコピーボタン用：リンクアイコン */
+function LinkSvg() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  )
+}
+
+/** リンクコピー完了ボタン用：チェックアイコン */
+function CheckSvg() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
   )
 }

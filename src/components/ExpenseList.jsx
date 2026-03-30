@@ -192,7 +192,10 @@ export default function ExpenseList({
     )
   }
 
-  const total = expenses.reduce((sum, e) => sum + e.amountJPY, 0)
+  const total          = expenses.reduce((sum, e) => sum + e.amountJPY, 0)
+  const memberCount    = members.length || 1
+  // 全支払い合計をメンバー数で均等割りした参考値（端数切り捨て）
+  const totalPerPerson = Math.floor(total / memberCount)
 
   return (
     <div>
@@ -271,9 +274,18 @@ export default function ExpenseList({
 
       {/* ── 合計カード */}
       <div className="el-total card">
+        {/* 左：件数ラベル + 合計金額 */}
         <div className="el-total-meta">
           <span className="el-total-label">合計（{expenses.length}件）</span>
           <span className="el-total-amount">¥{total.toLocaleString()}</span>
+        </div>
+        {/* 右：メンバー数 + 1人あたり金額 */}
+        <div className="el-total-per">
+          <span className="el-total-per-label">{memberCount}人で割ると</span>
+          <span className="el-total-per-amount">
+            ¥{totalPerPerson.toLocaleString()}
+            <span className="el-total-per-unit">/人</span>
+          </span>
         </div>
       </div>
 
@@ -365,9 +377,8 @@ export default function ExpenseList({
                         <span className="member-check-name">
                           {m.nickname || m.userId.slice(0, 8)}
                         </span>
-                        <span className="member-check-icon" aria-hidden="true">
-                          {isChecked ? '✅' : '○'}
-                        </span>
+                        {/* SVGチェックアイコン（絵文字を使わない） */}
+                        <MemberCheckSvg checked={isChecked} />
                       </div>
                     )
                   })}
@@ -393,5 +404,47 @@ export default function ExpenseList({
         </div>
       )}
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────
+// SVG アイコンコンポーネント
+// ProjectDetail.jsx の MemberCheckSvg と同一実装。
+// 将来的には src/components/icons.jsx に共通化すること。
+// ─────────────────────────────────────────────
+
+/**
+ * メンバー選択チェックアイコン。
+ * checked=true  → 塗りつぶし円 + 白チェックマーク
+ * checked=false → グレーの円枠のみ
+ * @param {{ checked: boolean }} props
+ */
+function MemberCheckSvg({ checked }) {
+  return (
+    <svg
+      className="member-check-svg"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      {checked ? (
+        <>
+          <circle cx="10" cy="10" r="10" fill="var(--color-primary)" />
+          <path
+            d="M6 10l3 3 5-5"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      ) : (
+        <circle
+          cx="10" cy="10" r="9"
+          stroke="var(--color-border)"
+          strokeWidth="1.5"
+        />
+      )}
+    </svg>
   )
 }

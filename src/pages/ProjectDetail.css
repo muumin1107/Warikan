@@ -189,11 +189,6 @@
   color: var(--color-text-primary);
 }
 
-.member-check-icon {
-  font-size: var(--font-size-sm);
-  flex-shrink: 0;
-}
-
 /* ============================================================
    5. 1人あたり金額プレビュー
    ============================================================ */
@@ -256,19 +251,77 @@
 /* ============================================================
    7. メンバー招待モーダル
    ============================================================ */
-.invite-section {
+
+/* 各招待手段のブロック（薄い背景で視覚的に区切る） */
+.invite-block {
+  background: #fafaf9;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
   margin-bottom: 4px;
 }
 
-.invite-section .form-group {
-  margin-top: 8px;
+/* ブロックラベル（絵文字なし・テキストのみ） */
+.invite-block-label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
 }
 
-.invite-section-title {
+/* ブロック説明文 */
+.invite-block-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+/* リンクコピーボタン（アウトラインスタイル・コピー後に緑に変化） */
+.invite-copy-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-bottom: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all var(--transition-fast);
+  /* デフォルト：アウトラインスタイル */
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.invite-copy-btn:hover:not(.invite-copy-btn--copied) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* コピー完了状態：緑の塗りつぶし */
+.invite-copy-btn--copied {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+  cursor: default;
+}
+
+/* コピーされたURLのプレビュー */
+.invite-link-preview {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  margin-top: 8px;
+  word-break: break-all;
+  font-family: monospace;
+  line-height: 1.5;
 }
 
 /* 区切り線（OR ディバイダー） */
@@ -292,19 +345,6 @@
   color: var(--color-text-muted);
 }
 
-/* 招待リンク表示ボックス */
-.invite-link-box {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  background: #f7f5f0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 8px 10px;
-  margin-top: 8px;
-  word-break: break-all;
-  font-family: monospace;
-}
-
 /* 招待結果メッセージ */
 .invite-message {
   font-size: var(--font-size-sm);
@@ -324,6 +364,36 @@
   background: var(--color-danger-light);
   color: var(--color-danger);
   border: 1px solid rgba(239, 68, 68, 0.20);
+}
+
+/* 招待モーダルの閉じるボタン
+   secondary-button のスタイルを継承しつつ、幅と余白を調整 */
+.invite-close-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: var(--font-size-md);
+  margin-top: 12px;
+  background-color: #f0f0f0;
+  color: var(--color-text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.invite-close-btn:hover {
+  background-color: #e4e4e4;
+}
+
+/* ============================================================
+   7-a. メンバー選択 SVG チェックアイコン
+   ============================================================ */
+.member-check-svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 /* ============================================================

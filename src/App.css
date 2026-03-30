@@ -32,8 +32,18 @@
   /* ── カラー：背景・ボーダー */
   --color-bg:             #f5f5f5;  /* ページ背景 */
   --color-surface:        #ffffff;  /* カード・モーダル背景 */
+  --color-surface-input:  #fafafa;  /* 入力欄の背景 */
+  --color-surface-subtle: #f0f0f0;  /* セカンダリボタン背景 */
+  --color-surface-warm:   #f7f5f0;  /* Stone系ウォームな背景（合計カード等）*/
   --color-border:         #e0e0e0;  /* 区切り線・枠線 */
+  --color-border-soft:    #f0f0f0;  /* カード内の薄い区切り線 */
   --color-border-focus:   #0ea87a;  /* フォーカス時の枠線 */
+
+  /* ── カラー：Stone系サブカラー（ウォームグレー） */
+  --color-stone-text:     #57534e;  /* Stone ラベル・説明文 */
+  --color-stone-muted:    #a8a29e;  /* Stone プレースホルダー */
+  --color-stone-border:   #e7e5e0;  /* Stone 枠線 */
+  --color-stone-badge-bg: #f0ede8;  /* 完了バッジ背景 */
 
   /* ── タイポグラフィ */
   --font-family:   'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif;
@@ -134,7 +144,7 @@ button:disabled {
 
 /* セカンダリ：グレーボタン */
 .secondary-button {
-  background-color: #f0f0f0;
+  background-color: var(--color-surface-subtle);
   color: var(--color-text-primary);
 }
 
@@ -250,7 +260,7 @@ button:disabled {
   font-family: var(--font-family);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
-  background-color: #fafafa;
+  background-color: var(--color-surface-input);
   outline: none;
   transition: border-color var(--transition-fast),
               background-color var(--transition-fast);
@@ -285,7 +295,7 @@ button:disabled {
    ============================================================ */
 .error {
   background-color: var(--color-danger-light);
-  border: 1px solid #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: var(--radius-md);
   padding: 12px var(--spacing-md);
   color: var(--color-danger);
@@ -310,7 +320,7 @@ button:disabled {
 }
 
 .badge-done {
-  background-color: #f0f0f0;
+  background-color: var(--color-surface-subtle);
   color: var(--color-text-muted);
 }
 
@@ -339,7 +349,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border-soft);
 }
 
 .list-item:last-child {
@@ -409,6 +419,15 @@ button:disabled {
   margin-bottom: 20px;
 }
 
+/* モーダルのスワイプハンドル（全モーダル共通） */
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  margin: 0 auto var(--spacing-md);
+}
+
 /* ============================================================
    16. タブ
    ============================================================ */
@@ -443,5 +462,5 @@ button:disabled {
 
 .tab:hover:not(.active) {
   color: var(--color-text-primary);
-  background-color: #f0f0f0;
+  background-color: var(--color-surface-subtle);
 }
