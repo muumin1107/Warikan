@@ -239,12 +239,24 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
 
         {/* ── 進行中プロジェクト */}
         <section>
-          <div className="section-label">進行中</div>
+          {/* プロジェクトがある場合のみ「進行中」ラベルを表示 */}
+          {activeProjects.length > 0 && (
+            <div className="section-label">進行中</div>
+          )}
 
           {activeProjects.length === 0 ? (
             <div className="empty-state">
               <p>進行中のプロジェクトがありません</p>
-              <p className="empty-hint">＋ボタンから作成してください</p>
+              <p className="empty-hint">
+                右下の
+                <span className="empty-fab-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="8" fill="var(--color-primary)" />
+                    <path d="M8 4v8M4 8h8" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                </span>
+                ボタンからトリップを作成してください
+              </p>
             </div>
           ) : (
             activeProjects.map((project) => (

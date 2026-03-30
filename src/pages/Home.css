@@ -329,3 +329,13 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ============================================================
+   空状態のFABアイコン（ExpenseList と同じデザイン）
+   ============================================================ */
+.empty-fab-icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 3px;
+}
