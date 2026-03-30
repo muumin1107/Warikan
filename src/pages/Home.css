@@ -302,3 +302,30 @@
   padding: 14px;
   font-size: var(--font-size-md);
 }
+
+/* ============================================================
+   プロジェクトカード：削除ボタン
+   ============================================================ */
+.project-delete-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  background: rgba(239, 68, 68, 0.07);
+  color: var(--color-danger);
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.project-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.project-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

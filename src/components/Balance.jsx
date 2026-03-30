@@ -14,7 +14,6 @@
  */
 
 import { useState } from 'react'
-import { v4 as uuidv4 } from 'uuid'
 import './Balance.css'
 
 // ─────────────────────────────────────────────
@@ -26,7 +25,6 @@ import './Balance.css'
  * POST /settlements は SQS 経由の非同期処理（202 Accepted）のため、
  * DynamoDB への書き込みが完了するまで少し待つ必要がある。
  */
-const REFETCH_DELAY_MS = 2000
 
 // ─────────────────────────────────────────────
 // ユーティリティ
@@ -78,46 +76,14 @@ export default function Balance({
   currentUserId,
   onSettled,
 }) {
-  /**
-   * 精算処理中の settlementId を保持する。
-   * ※ オブジェクト全体での比較（settling === s）は参照比較になり不安定なため、
-   *    一意な ID 文字列で管理する。
-   * @type {[string | null, Function]}
-   */
-  const [settlingId, setSettlingId] = useState(null)
-
-  // エラー表示
-  const [error, setError] = useState('')
+  // 精算処理中の planId（連打防止）
+  const [error,      setError]      = useState('')
 
   // ─────────────────────────────────────────────
   // 精算処理（「返した」ボタン）
   // ─────────────────────────────────────────────
 
-  /**
-   * POST /projects/{id}/settlements で精算記録を作成する。
-   * verifiedUserId = fromUserId（送金者）として VTL で注入される。
-   * @param {{ fromUserId: string, toUserId: string, amountJPY: number }} settlement
-   * @param {string} settlementId  画面内での一意 ID（クリック時に生成）
-   */
-  const handleSettle = async (settlement, settlementId) => {
-    setSettlingId(settlementId)
-    setError('')
-    try {
-      await apiClient.post(`/projects/${projectId}/settlements`, {
-        operation:    'CREATE_SETTLEMENT',
-        settlementId: uuidv4(),           // DynamoDB の主キー
-        toUserId:     settlement.toUserId,
-        amountJPY:    settlement.amountJPY,
-      })
-      // SQS 非同期のため書き込み完了を待ってから再取得
-      setTimeout(onSettled, REFETCH_DELAY_MS)
-    } catch (err) {
-      console.error('精算処理に失敗しました:', err)
-      setError(err?.response?.data?.message || '精算の処理に失敗しました')
-    } finally {
-      setSettlingId(null)
-    }
-  }
+
 
   // ─────────────────────────────────────────────
   // レンダー
@@ -134,6 +100,9 @@ export default function Balance({
       {/* ── メンバー別残高カード */}
       <div className="card">
         <h2 className="balance-section-title">メンバー別残高</h2>
+        <p className="balance-section-desc">
+          ＋は受け取り超過（立て替え多め）、－は支払い超過（立て替え少なめ）を表します
+        </p>
 
         {balances.map((b) => {
           const name      = getName(members, b.userId)
@@ -156,9 +125,10 @@ export default function Balance({
       </div>
 
       {/* ── 精算プランセクションラベル */}
-      <div className="balance-plan-label">
-        精算プラン（最少送金数）
-      </div>
+      <div className="balance-plan-label">精算プラン（最少送金数）</div>
+      <p className="balance-plan-desc">
+        最も少ない回数で精算できる送金プランです。送金したら「返した」ボタンを押してください
+      </p>
 
       {/* 精算不要（全員精算済み） */}
       {settlements.length === 0 ? (
@@ -173,9 +143,7 @@ export default function Balance({
            * settlements は配列インデックスで管理（サーバー生成 ID がないため）。
            * 同一インデックスで複数精算が発生しないよう i を使う。
            */
-          const planId      = `plan-${i}`
-          const isSettling  = settlingId === planId
-          const isMySend    = s.fromUserId === currentUserId
+          const planId   = `plan-${i}`
 
           const fromName = getName(members, s.fromUserId)
           const toName   = getName(members, s.toUserId)
@@ -200,22 +168,11 @@ export default function Balance({
                 </div>
               </div>
 
-              {/* 金額 + 「返した」ボタン */}
+              {/* 金額 */}
               <div className="settle-right">
                 <span className="settle-amount">
                   ¥{s.amountJPY.toLocaleString()}
                 </span>
-
-                {/* 送金者のみ「返した」ボタンを表示 */}
-                {isMySend && (
-                  <button
-                    className="settle-button"
-                    onClick={() => handleSettle(s, planId)}
-                    disabled={isSettling}
-                  >
-                    {isSettling ? '処理中...' : '返した'}
-                  </button>
-                )}
               </div>
             </div>
           )

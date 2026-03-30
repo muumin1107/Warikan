@@ -47,11 +47,10 @@ const MODE_META = {
  * signup / reset モードのパスワード入力欄の下にリアルタイム表示する。
  */
 const PASSWORD_RULES = [
-  { label: '8文字以上',   test: (v) => v.length >= 8 },
-  { label: '大文字を含む', test: (v) => /[A-Z]/.test(v) },
-  { label: '小文字を含む', test: (v) => /[a-z]/.test(v) },
-  { label: '数字を含む',   test: (v) => /[0-9]/.test(v) },
-  { label: '記号を含む',   test: (v) => /[^A-Za-z0-9]/.test(v) },
+  { label: '8文字以上',     test: (v) => v.length >= 8 },
+  { label: '大文字を含む',  test: (v) => /[A-Z]/.test(v) },
+  { label: '数字を含む',    test: (v) => /[0-9]/.test(v) },
+  { label: '特殊文字を含む', test: (v) => /[^A-Za-z0-9]/.test(v) },
 ]
 
 // ─────────────────────────────────────────────
@@ -297,7 +296,7 @@ export default function AuthPage({ onAuthSuccess }) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="8文字以上"
+                  placeholder="8文字以上（大文字・数字・特殊文字を含む）"
                   required
                   autoComplete="new-password"
                 />
@@ -414,7 +413,7 @@ export default function AuthPage({ onAuthSuccess }) {
                   type="password"
                   value={newPass}
                   onChange={(e) => setNewPass(e.target.value)}
-                  placeholder="8文字以上"
+                  placeholder="8文字以上（大文字・数字・特殊文字を含む）"
                   required
                   autoComplete="new-password"
                 />
@@ -517,14 +516,14 @@ function friendlyError(err) {
     UserNotFoundException:    'メールアドレスが見つかりません',
     NotAuthorizedException:   'メールアドレスまたはパスワードが正しくありません',
     UsernameExistsException:  'このメールアドレスはすでに登録されています',
-    InvalidPasswordException: 'パスワードは8文字以上で英数字を含めてください',
+    InvalidPasswordException: 'パスワードは8文字以上で、大文字・数字・特殊文字を含めてください',
     CodeMismatchException:    '確認コードが正しくありません',
     ExpiredCodeException:     '確認コードの有効期限が切れています。再送してください',
     LimitExceededException:   'リクエスト回数の上限に達しました。しばらく待ってから再試行してください',
   }
   if (messages[code]) return messages[code]
   if (msg.includes('Password did not conform')) {
-    return 'パスワードは8文字以上で英数字・記号を含めてください'
+    return 'パスワードは8文字以上で、大文字・数字・特殊文字を含めてください'
   }
   return msg || 'エラーが発生しました'
 }

@@ -162,3 +162,20 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ============================================================
+   セクション説明文
+   ============================================================ */
+.balance-section-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.balance-plan-desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  line-height: 1.6;
+}

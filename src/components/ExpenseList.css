@@ -127,6 +127,14 @@
   gap: 8px;
 }
 
+/* バッジグループ（カテゴリ + 請求先をまとめる） */
+.expense-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 /* 請求先バッジ（全員 / N人） */
 .expense-split-badge {
   display: inline-block;
@@ -346,3 +354,63 @@
 
 /* モーダル内のアップロードUI（ProjectDetail.css と共通クラスを使う）
    .receipt-upload-label / .receipt-preview 等は ProjectDetail.css で定義済み */
+
+/* ============================================================
+   11. 現地通貨表示（カード内）
+   ============================================================ */
+
+/* 円換算額の下に小さく現地通貨を表示 */
+.expense-original-amount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 1px;
+  text-align: right;
+}
+
+/* ============================================================
+   12. 空状態のFABアイコン
+   ============================================================ */
+.el-empty-fab-icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 3px;
+}
+
+/* ============================================================
+   13. 「返した」ボタン / 返済済みバッジ
+   ============================================================ */
+
+/* 「¥xxx 返した」ボタン */
+.expense-settle-btn {
+  padding: 5px 13px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid rgba(14, 168, 122, 0.35);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.expense-settle-btn:hover:not(:disabled) {
+  background: rgba(14, 168, 122, 0.20);
+}
+
+.expense-settle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 返済済みバッジ */
+.expense-settled-badge {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}

@@ -103,6 +103,9 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
   const [projectStatus,   setProjectStatus]   = useState('active')
   const [projectOwnerId,  setProjectOwnerId]  = useState('')
   const [statusChanging,  setStatusChanging]  = useState(false)
+  // 楽観的更新用：「返した」を押した expenseId:userId のキーセット
+  // タブ切り替えでもリセットされないよう ProjectDetail で保持する
+  const [localPaidKeys,   setLocalPaidKeys]    = useState(new Set())
 
   // ── 支払い追加モーダル
   const [showModal,        setShowModal]        = useState(false)
@@ -181,7 +184,6 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
       setProjectStatus(projRes.data.status   || 'active')
       setProjectOwnerId(projRes.data.ownerId || '')
     } catch (err) {
-      console.error('データ取得に失敗しました:', err)
       setError('データの読み込みに失敗しました')
     } finally {
       setLoading(false)
@@ -203,7 +205,6 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
       await apiClient.put(`/projects/${project.projectId}/status`, { status: nextStatus })
       setProjectStatus(nextStatus)
     } catch (err) {
-      console.error('ステータス変更に失敗しました:', err)
       setError('ステータスの変更に失敗しました')
     } finally {
       setStatusChanging(false)
@@ -307,7 +308,6 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
       // SQS 非同期のため書き込み完了を待ってから再取得
       setTimeout(fetchAll, REFETCH_DELAY_MS)
     } catch (err) {
-      console.error('支払い追加に失敗しました:', err)
       setError('支払いの追加に失敗しました')
     }
   }
@@ -423,23 +423,50 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
 
         {/* タブコンテンツ */}
         {tab === 'expenses' ? (
-          <ExpenseList
-            expenses={expenses}
-            members={members}
-            apiClient={apiClient}
-            projectId={project.projectId}
-            currentUserId={currentUserId}
-            onRefresh={fetchAll}
-            isProjectClosed={isClosed}
-          />
+          <>
+            {/* 精算が必要な場合のバナー（自分が送金者のときのみ表示） */}
+            {(() => {
+              const mySettlements = (balance.settlements || []).filter(
+                (s) => s.fromUserId === currentUserId
+              )
+              if (mySettlements.length === 0) return null
+              return (
+                <div
+                  className="settle-banner"
+                  onClick={() => setTab('balance')}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && setTab('balance')}
+                  aria-label="精算プランを確認する"
+                >
+                  <span className="settle-banner-text">
+                    💸 未精算があります。「残高・精算」タブで確認できます
+                  </span>
+                  <span className="settle-banner-arrow">→</span>
+                </div>
+              )
+            })()}
+            <ExpenseList
+              expenses={expenses}
+              members={members}
+              apiClient={apiClient}
+              projectId={project.projectId}
+              currentUserId={currentUserId}
+              onRefresh={fetchAll}
+              isProjectClosed={isClosed}
+              onSettled={fetchAll}
+              localPaidKeys={localPaidKeys}
+              onLocalPaid={(key) => setLocalPaidKeys((prev) => new Set([...prev, key]))}
+              onLocalPaidUndo={(key) => setLocalPaidKeys((prev) => {
+                const next = new Set(prev); next.delete(key); return next
+              })}
+            />
+          </>
         ) : (
           <Balance
             balance={balance}
             members={members}
-            apiClient={apiClient}
-            projectId={project.projectId}
             currentUserId={currentUserId}
-            onSettled={fetchAll}
           />
         )}
       </div>
@@ -451,15 +478,17 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
         </button>
       )}
 
-      {/* ── 招待 FAB（進行中のみ） */}
+      {/* ── 招待 FAB（進行中のみ）
+          「メンバー追加」ラベルで直感的に伝わるよう改善 */}
       {!isClosed && (
         <button
           className="invite-fab"
           onClick={openInviteModal}
-          aria-label="メンバーを招待"
-          title="メンバーを招待"
+          aria-label="メンバーを追加"
+          title="メンバーを追加・招待する"
         >
-          👥
+          <InviteIcon />
+          <span className="invite-fab-label">メンバー追加</span>
         </button>
       )}
 
@@ -845,6 +874,19 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
  * checked=false → グレーの円枠のみ
  * @param {{ checked: boolean }} props
  */
+/** メンバー追加（招待）FAB 用アイコン */
+function InviteIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="19" y1="8" x2="19" y2="14" />
+      <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+  )
+}
+
 function MemberCheckSvg({ checked }) {
   return (
     <svg

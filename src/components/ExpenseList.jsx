@@ -52,7 +52,8 @@ function getName(members, userId) {
  *   projectId:       string,
  *   currentUserId:   string,
  *   onRefresh:       () => void,
- *   isProjectClosed: boolean,  プロジェクト終了中は編集・削除を非表示にする
+ *   isProjectClosed: boolean,   プロジェクト終了中は編集・削除を非表示にする
+ *   onSettled:       () => void,
  * }} props
  */
 export default function ExpenseList({
@@ -62,7 +63,11 @@ export default function ExpenseList({
   projectId,
   currentUserId,
   onRefresh,
-  isProjectClosed = false,
+  isProjectClosed  = false,
+  onSettled        = () => {},
+  localPaidKeys    = new Set(),  // タブ切り替えでも保持される楽観的更新キーセット
+  onLocalPaid      = () => {},   // キーを追加するコールバック
+  onLocalPaidUndo  = () => {},   // 失敗時にキーを削除するコールバック
 }) {
   // ── 編集モーダル
   const [editTarget,       setEditTarget]       = useState(null)
@@ -71,7 +76,11 @@ export default function ExpenseList({
   const [receiptUploading, setReceiptUploading] = useState(false)  // レシートアップロード中
 
   // ── 削除処理中の expenseId（連打防止）
-  const [deletingId, setDeletingId] = useState(null)
+  const [deletingId,  setDeletingId]  = useState(null)
+  // 精算処理中フラグ（連打防止）
+  const [settlingKey,  setSettlingKey]  = useState(null)
+
+  // ── 精算処理中の toUserId（連打防止）
 
   // ── エラー表示
   const [error, setError] = useState('')
@@ -219,6 +228,48 @@ export default function ExpenseList({
   }
 
   // ─────────────────────────────────────────────
+  // 支払い単位の精算（「返した」ボタン）
+  // ─────────────────────────────────────────────
+
+  /**
+   * 自分の分を支払い者に返したことを記録する。
+   * 既存の POST /projects/{id}/settlements を流用し、
+   * expenseId も送ることで EXPENSE_SPLIT の isPaid が更新される。
+   * @param {{ expenseId: string, payerId: string, amountJPY: number }} expense
+   * @param {number} myAmount 自分の負担額
+   */
+  const handleSettle = async (expense, myAmount) => {
+    const key = `${expense.expenseId}:${currentUserId}`
+    setSettlingKey(key)
+    setError('')
+
+    // 楽観的更新：API完了を待たずに即座に返済済み表示にする
+    // ProjectDetail 管理の state に追加することでタブ切り替えでもリセットされない
+    onLocalPaid(key)
+
+    try {
+      await apiClient.post(`/projects/${projectId}/settlements`, {
+        operation:    'CREATE_SETTLEMENT',
+        settlementId: crypto.randomUUID(),
+        toUserId:     expense.payerId,
+        amountJPY:    myAmount,
+        expenseId:    expense.expenseId,
+      })
+      // SQS 非同期処理後にサーバー側の値で再取得（isPaid が DB に反映される）
+      setTimeout(() => {
+        onRefresh()
+        if (onSettled) onSettled()
+      }, 2000)
+    } catch (err) {
+      // 失敗した場合は楽観的更新を取り消してボタンを復活させる
+      onLocalPaidUndo(key)
+      setError(err?.response?.data?.message || '精算の処理に失敗しました')
+    } finally {
+      setSettlingKey(null)
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // レンダー
   // ─────────────────────────────────────────────
 
@@ -226,7 +277,20 @@ export default function ExpenseList({
     return (
       <div className="el-empty card">
         <p>まだ支払いがありません</p>
-        <p className="el-empty-hint">＋ボタンから追加してください</p>
+        {!isProjectClosed && (
+          <p className="el-empty-hint">
+            {/* 右下の FAB（＋ボタン）を指すミニアイコン付きの説明 */}
+            右下の
+            <span className="el-empty-fab-icon" aria-hidden="true">
+              {/* FABを模したミニアイコン */}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="8" fill="var(--color-primary)" />
+                <path d="M8 4v8M4 8h8" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </span>
+            ボタンから支払いを追加してください
+          </p>
+        )}
       </div>
     )
   }
@@ -244,10 +308,23 @@ export default function ExpenseList({
       {/* ── 支払いカード一覧 */}
       {expenses.map((expense) => {
         const splitCount  = expense.splitUserIds?.length || 1
-        // 端数調整（divmod）により実際の負担額は人によって異なる。
-        // 表示は切り捨ての概算値（最小値）を示す。
         const perPersonBase = Math.floor(expense.amountJPY / splitCount)
         const hasRemainder  = expense.amountJPY % splitCount !== 0
+
+        // 自分の分担情報（splits に含まれる場合）
+        const mySplit    = expense.splits?.find((s) => s.userId === currentUserId)
+        const myAmount   = mySplit?.amountJPY ?? 0
+        const myIsPaid   = mySplit?.isPaid
+          || localPaidKeys.has(`${expense.expenseId}:${currentUserId}`)
+          || false
+
+        // 「返した」ボタンを表示するか
+        // - 自分が請求対象者（splitUserIds に含まれる）
+        // - かつ支払い者でない
+        // - かつプロジェクト進行中
+        const canSettle = !isProjectClosed
+          && expense.payerId !== currentUserId
+          && expense.splitUserIds?.includes(currentUserId)
         const isMyExpense = expense.payerId === currentUserId
         const isDeleting  = deletingId === expense.expenseId
         const payerName   = getName(members, expense.payerId)
@@ -293,20 +370,21 @@ export default function ExpenseList({
 
             {/* ── 下段：カテゴリ + 請求先バッジ + アクション */}
             <div className="expense-bottom">
-              {/* カテゴリバッジ（保存済みカテゴリがある場合のみ表示） */}
-              {categoryInfo && (
-                <span className={`expense-category-badge expense-category-badge--${categoryInfo.color}`}>
-                  {categoryInfo.label}
+              {/* 左側：バッジ群をまとめてグループ化（間隔が広がらないように） */}
+              <div className="expense-badge-group">
+                {/* カテゴリバッジ（保存済みカテゴリがある場合のみ表示） */}
+                {categoryInfo && (
+                  <span className={`expense-category-badge expense-category-badge--${categoryInfo.color}`}>
+                    {categoryInfo.label}
+                  </span>
+                )}
+                {/* 請求先バッジ */}
+                <span className={`expense-split-badge ${expense.splitType === 'ALL' ? 'expense-split-badge--all' : 'expense-split-badge--custom'}`}>
+                  {expense.splitType === 'ALL' ? '全員' : `${splitCount}人`}
                 </span>
-              )}
-              {/* 請求先バッジ */}
-              <span className={`expense-split-badge ${expense.splitType === 'ALL' ? 'expense-split-badge--all' : 'expense-split-badge--custom'}`}>
-                {expense.splitType === 'ALL' ? '全員' : `${splitCount}人`}
-              </span>
+              </div>
 
-              {/* 自分の支払い かつ プロジェクト進行中のみ編集・削除を表示
-                  isProjectClosed === true のときはボタン自体を非表示にする
-                  （disabled ではなく非表示にすることで終了状態を明確にする） */}
+              {/* 自分の支払い かつ プロジェクト進行中のみ編集・削除を表示 */}
               {isMyExpense && !isProjectClosed && (
                 <div className="expense-actions">
                   <button
@@ -324,6 +402,23 @@ export default function ExpenseList({
                     {isDeleting ? '削除中...' : '削除'}
                   </button>
                 </div>
+              )}
+
+              {/* 「返した」ボタン（請求対象者かつ支払い者でない場合） */}
+              {canSettle && (
+                myIsPaid ? (
+                  <span className="expense-settled-badge">返済済み ✓</span>
+                ) : (
+                  <button
+                    className="expense-settle-btn"
+                    onClick={() => handleSettle(expense, myAmount)}
+                    disabled={settlingKey === `${expense.expenseId}:${currentUserId}`}
+                  >
+                    {settlingKey === `${expense.expenseId}:${currentUserId}`
+                      ? '処理中...'
+                      : `¥${myAmount.toLocaleString()} 返した`}
+                  </button>
+                )
               )}
             </div>
 
@@ -344,6 +439,8 @@ export default function ExpenseList({
                 <span className="expense-receipt-label">レシートを見る</span>
               </a>
             )}
+
+
 
           </div>
         )

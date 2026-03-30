@@ -50,11 +50,14 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
   // 新規プロジェクトのフォーム入力値
   const [newProject,  setNewProject]  = useState(INITIAL_NEW_PROJECT)
   // 招待参加処理中のプロジェクト ID（複数同時押しを防止）
-  const [joiningId,   setJoiningId]   = useState(null)
+  const [joiningId,        setJoiningId]        = useState(null)
+  // 削除処理中のプロジェクト ID（連打防止）
+  const [deletingProjectId, setDeletingProjectId] = useState(null)
 
   // ─────────────────────────────────────────────
   // プロジェクト一覧をステータスで分類（計算値）
   // ─────────────────────────────────────────────
+  // 物理削除のためDBから消えた時点で一覧に出なくなる
   const activeProjects = projects.filter((p) => p.status !== 'closed')
   const closedProjects = projects.filter((p) => p.status === 'closed')
 
@@ -141,6 +144,34 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
   }
 
   // ─────────────────────────────────────────────
+  // プロジェクト削除（物理削除）
+  // ─────────────────────────────────────────────
+
+  /**
+   * オーナーのみ操作可。
+   * DELETE /projects/{projectId} を呼び出し、全関連データを削除する。
+   * @param {string} projectId
+   * @param {string} projectName 確認ダイアログ表示用
+   */
+  const deleteProject = async (projectId, projectName) => {
+    if (!window.confirm(
+      `「${projectName}」を削除しますか？\n\nすべての支払いデータが削除されます。この操作は取り消せません。`
+    )) return
+
+    setDeletingProjectId(projectId)
+    setError('')
+    try {
+      await apiClient.delete(`/projects/${projectId}`)
+      // 削除成功したら一覧を再取得
+      await fetchProjects()
+    } catch (err) {
+      setError(err?.response?.data?.message || 'プロジェクトの削除に失敗しました')
+    } finally {
+      setDeletingProjectId(null)
+    }
+  }
+
+  // ─────────────────────────────────────────────
   // モーダル操作
   // ─────────────────────────────────────────────
 
@@ -221,6 +252,12 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
                 key={project.projectId}
                 project={project}
                 onClick={() => onSelectProject(project)}
+                isOwner={project.ownerId === user?.id}
+                isDeleting={deletingProjectId === project.projectId}
+                onDelete={(e) => {
+                  e.stopPropagation()
+                  deleteProject(project.projectId, project.name)
+                }}
               />
             ))
           )}
@@ -235,6 +272,12 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
                 key={project.projectId}
                 project={project}
                 onClick={() => onSelectProject(project)}
+                isOwner={project.ownerId === user?.id}
+                isDeleting={deletingProjectId === project.projectId}
+                onDelete={(e) => {
+                  e.stopPropagation()
+                  deleteProject(project.projectId, project.name)
+                }}
               />
             ))}
           </section>
@@ -322,9 +365,9 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
  *   onClick: () => void,
  * }} props
  */
-function ProjectCard({ project, onClick }) {
-  const isClosed   = project.status === 'closed'
-  const dateStr    = project.createdAt?.slice(0, 10) ?? ''
+function ProjectCard({ project, onClick, isOwner, isDeleting, onDelete }) {
+  const isClosed = project.status === 'closed'
+  const dateStr  = project.createdAt?.slice(0, 10) ?? ''
 
   return (
     <div
@@ -349,6 +392,17 @@ function ProjectCard({ project, onClick }) {
 
       <div className="project-card-bottom">
         <span className="project-date">{dateStr}</span>
+        {/* 削除ボタン（オーナーのみ表示） */}
+        {isOwner && (
+          <button
+            className="project-delete-btn"
+            onClick={onDelete}
+            disabled={isDeleting}
+            aria-label={`${project.name}を削除`}
+          >
+            {isDeleting ? '削除中...' : '削除'}
+          </button>
+        )}
       </div>
     </div>
   )

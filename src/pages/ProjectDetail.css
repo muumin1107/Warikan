@@ -555,3 +555,90 @@
 .receipt-remove-btn:hover {
   background: rgba(0, 0, 0, 0.75);
 }
+
+/* ============================================================
+   12. 通貨入力 UI
+   ============================================================ */
+
+/* 通貨記号 + 入力欄の横並びレイアウト */
+.currency-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-symbol {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  min-width: 20px;
+}
+
+.currency-amount-row input {
+  flex: 1;
+}
+
+/* 円換算プレビュー */
+.currency-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-primary-light);
+  border: 1px solid rgba(14, 168, 122, 0.25);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: var(--spacing-md);
+}
+
+.currency-preview-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.currency-preview-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   13. 精算バナー（支払い一覧タブ上部 - 未精算があるとき表示）
+   ============================================================ */
+.settle-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.30);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.settle-banner:hover {
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.settle-banner-text {
+  font-size: var(--font-size-sm);
+  color: #92400e;
+  font-weight: 500;
+  flex: 1;
+}
+
+.settle-banner-arrow {
+  font-size: var(--font-size-sm);
+  color: #b45309;
+  flex-shrink: 0;
+}
+
+/* 招待FABラベル幅調整（「メンバー追加」に対応） */
+.invite-fab-label {
+  font-size: 10px;
+  white-space: nowrap;
+}

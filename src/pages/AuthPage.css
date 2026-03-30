@@ -253,9 +253,8 @@
   padding: 0;
   margin: 8px 0 0;
   display: grid;
-  /* 5条件を2列で表示（幅が狭い場合でも収まる） */
   grid-template-columns: 1fr 1fr;
-  gap: 6px 12px;
+  gap: 5px 12px;
 }
 
 .pwd-rule {
