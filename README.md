@@ -1,5 +1,7 @@
 # Warikan（割り勘）
 
+<img width="2848" height="1504" alt="og-image (3)" src="https://github.com/user-attachments/assets/d43fc849-207a-4ce9-b580-5c94912e98b1" />
+
 旅行の立て替えをスマートに精算するWebアプリです。
 
 **デモ：** https://main.d23e9yi3475pdz.amplifyapp.com
