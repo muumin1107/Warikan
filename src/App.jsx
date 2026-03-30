@@ -117,7 +117,7 @@ export default function App() {
       await fetchNickname()
 
       // FCM Push トークンを登録（失敗してもログインは続行）
-      registerPushToken(apiClientRef.current).catch(console.error)
+      registerPushToken(apiClientRef.current).catch(() => {})  // Push通知失敗は無視
     } catch {
       setAuthState('unauth')
     }
@@ -152,7 +152,15 @@ export default function App() {
   // ログアウトハンドラー（Home に渡す）
   // ─────────────────────────────────────────────
   const handleLogout = async () => {
-    await amplifySignOut()
+    try {
+      // Cognito のサインアウトURLを設定している場合は global: true を使うと
+      // サーバー側セッションも破棄できるが、設定していない場合は hosted UI に
+      // リダイレクトされてエラーになるためローカルのみのサインアウトにする。
+      await amplifySignOut()
+    } catch {
+      // サインアウト失敗時もローカルステートをリセットして画面を戻す
+      handleSignedOut()
+    }
     // signedOut イベントで handleSignedOut() が呼ばれる
   }
 

@@ -189,7 +189,6 @@ export default function ExpenseList({
       closeEdit()
       setTimeout(onRefresh, REFETCH_DELAY_MS)
     } catch (err) {
-      console.error('支払いの更新に失敗しました:', err)
       setError(err?.response?.data?.message || '保存に失敗しました')
     } finally {
       setSaving(false)
@@ -213,7 +212,6 @@ export default function ExpenseList({
       })
       setTimeout(onRefresh, REFETCH_DELAY_MS)
     } catch (err) {
-      console.error('支払いの削除に失敗しました:', err)
       setError(err?.response?.data?.message || '削除に失敗しました')
     } finally {
       setDeletingId(null)
@@ -246,7 +244,10 @@ export default function ExpenseList({
       {/* ── 支払いカード一覧 */}
       {expenses.map((expense) => {
         const splitCount  = expense.splitUserIds?.length || 1
-        const perPerson   = Math.floor(expense.amountJPY / splitCount)
+        // 端数調整（divmod）により実際の負担額は人によって異なる。
+        // 表示は切り捨ての概算値（最小値）を示す。
+        const perPersonBase = Math.floor(expense.amountJPY / splitCount)
+        const hasRemainder  = expense.amountJPY % splitCount !== 0
         const isMyExpense = expense.payerId === currentUserId
         const isDeleting  = deletingId === expense.expenseId
         const payerName   = getName(members, expense.payerId)
@@ -283,7 +284,9 @@ export default function ExpenseList({
                   </div>
                 )}
                 <div className="expense-per">
-                  1人 ¥{perPerson.toLocaleString()}
+                  {/* 端数がある場合は「¥600〜601/人」のように範囲で表示 */}
+                  1人 ¥{perPersonBase.toLocaleString()}
+                  {hasRemainder && <>〜{(perPersonBase + 1).toLocaleString()}</>}
                 </div>
               </div>
             </div>

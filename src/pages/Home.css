@@ -26,8 +26,14 @@
 .home-header-title {
   font-size: var(--font-size-lg);
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--color-text-primary);  /* 「Wari」は黒 */
   letter-spacing: -0.02em;
+}
+
+/* 「kan」部分だけグリーン（Auth/Nickname/JoinPage と統一） */
+.home-header-title-em {
+  color: var(--color-primary);
+  font-style: normal;
 }
 
 /* ヘッダー右側：メールアドレス + ログアウトボタン */
@@ -56,7 +62,7 @@
 }
 
 .home-logout-btn:hover {
-  background: #f5f5f5;
+  background: var(--color-bg);
   color: var(--color-text-primary);
 }
 
@@ -208,7 +214,7 @@
   justify-content: space-between;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .project-date {
@@ -233,8 +239,8 @@
 }
 
 .project-badge--closed {
-  background: #f0ede8;
-  color: #a8a29e;
+  background: var(--color-stone-badge-bg);
+  color: var(--color-stone-muted);
 }
 
 /* ============================================================

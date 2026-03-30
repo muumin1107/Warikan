@@ -92,7 +92,6 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
       setProjects(res.data.projects     || [])
       setInvitations(res.data.invitations || [])
     } catch (err) {
-      console.error('プロジェクト取得に失敗しました:', err)
       setError('プロジェクトの読み込みに失敗しました')
     } finally {
       setLoading(false)
@@ -116,7 +115,6 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
       // SQS 非同期のため書き込み完了を待ってから再取得（→ REFETCH_DELAY_MS 参照）
       setTimeout(fetchProjects, REFETCH_DELAY_MS)
     } catch (err) {
-      console.error('プロジェクト作成に失敗しました:', err)
       setError('プロジェクトの作成に失敗しました')
     }
   }
@@ -136,7 +134,6 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
       await apiClient.put(`/projects/${projectId}/join`, {})
       await fetchProjects()
     } catch (err) {
-      console.error('プロジェクト参加に失敗しました:', err)
       setError('プロジェクトへの参加に失敗しました')
     } finally {
       setJoiningId(null)
@@ -172,7 +169,7 @@ export default function Home({ apiClient, user, onSelectProject, onLogout }) {
     <div>
       {/* ── ヘッダー */}
       <header className="home-header">
-        <h1 className="home-header-title">Warikan</h1>
+        <h1 className="home-header-title">Wari<em className="home-header-title-em">kan</em></h1>
         <div className="home-header-right">
           <span className="home-user-email">{user?.email}</span>
           <button className="home-logout-btn" onClick={onLogout}>
