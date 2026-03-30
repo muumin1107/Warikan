@@ -30,7 +30,7 @@
 }
 
 .pd-back-btn:hover {
-  background: #f0f0f0;
+  background: var(--color-surface-subtle);
 }
 
 /* プロジェクト名（ヘッダー中央） */
@@ -115,7 +115,7 @@
   padding: 9px;
   border-radius: var(--radius-md);
   border: 1.5px solid var(--color-border);
-  background: #fafafa;
+  background: var(--color-surface-input);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -152,7 +152,7 @@
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1.5px solid var(--color-border);
-  background: #fafafa;
+  background: var(--color-surface-input);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -254,7 +254,7 @@
 
 /* 各招待手段のブロック（薄い背景で視覚的に区切る） */
 .invite-block {
-  background: #fafaf9;
+  background: var(--color-surface-input);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 14px 16px;
@@ -275,6 +275,10 @@
   color: var(--color-text-muted);
   margin-bottom: 10px;
   line-height: 1.5;
+}
+/* 招待ブロック内フォームグループ（margin 調整） */
+.invite-form-group {
+  margin-bottom: 10px;
 }
 
 /* リンクコピーボタン（アウトラインスタイル・コピー後に緑に変化） */
@@ -373,7 +377,7 @@
   padding: 12px;
   font-size: var(--font-size-md);
   margin-top: 12px;
-  background-color: #f0f0f0;
+  background-color: var(--color-surface-subtle);
   color: var(--color-text-primary);
   border: none;
   border-radius: var(--radius-md);
@@ -429,14 +433,125 @@
   transform: scale(0.95);
 }
 
+/* modal-handle は App.css で定義済みのためここでは省略 */
+
 /* ============================================================
-   9. モーダルハンドル（App.css の .modal-handle と統一）
-      ※ .modal 内で使うが、ProjectDetail のモーダルでも同じデザイン
+   10. カテゴリ選択 UI（支払い追加モーダル内）
    ============================================================ */
-.modal-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--color-border);
-  margin: 0 auto var(--spacing-md);
+
+/* チップを横並びに折り返して表示 */
+.category-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* カテゴリチップ（選択肢ボタン） */
+.category-chip {
+  padding: 5px 13px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.category-chip:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+
+/* ── 選択済み状態（各カラーで上書き） */
+.category-chip--active.category-chip--green  { background: rgba(14, 168, 122, 0.12); border-color: #0ea87a; color: #0ea87a; }
+.category-chip--active.category-chip--blue   { background: rgba(74, 158, 255, 0.12); border-color: #4a9eff; color: #4a9eff; }
+.category-chip--active.category-chip--purple { background: rgba(167, 139, 250, 0.12); border-color: #a78bfa; color: #a78bfa; }
+.category-chip--active.category-chip--amber  { background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #d97706; }
+.category-chip--active.category-chip--pink   { background: rgba(244, 114, 182, 0.12); border-color: #f472b6; color: #f472b6; }
+.category-chip--active.category-chip--gray   { background: rgba(153, 153, 153, 0.12); border-color: #999; color: #666; }
+
+/* ============================================================
+   11. レシートアップロード UI（支払い追加モーダル）
+   ============================================================ */
+
+/* ファイル選択ボタン（input[type=file] を非表示にしてラベルをボタンとして使う） */
+.receipt-upload-label {
+  display: block;
+  cursor: pointer;
+}
+
+.receipt-upload-input {
+  display: none;  /* ネイティブのファイル選択ダイアログは label 経由で開く */
+}
+
+.receipt-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--color-border);
+  background: var(--color-surface-input);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  transition: all var(--transition-fast);
+  width: 100%;
+  justify-content: center;
+}
+
+.receipt-upload-label:hover .receipt-upload-btn:not(.receipt-upload-btn--loading) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.receipt-upload-btn--loading {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* アップロード済みサムネイルプレビュー */
+.receipt-preview {
+  position: relative;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.receipt-preview-img {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  display: block;
+}
+
+/* 削除ボタン（✕） */
+.receipt-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background var(--transition-fast);
+}
+
+.receipt-remove-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
 }

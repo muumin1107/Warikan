@@ -123,7 +123,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 10px;
-  border-top: 1px solid #f0ede8;
+  border-top: 1px solid var(--color-stone-badge-bg);
   gap: 8px;
 }
 
@@ -165,7 +165,7 @@
   font-weight: 600;
   cursor: pointer;
   border: 1px solid var(--color-border);
-  background: #f7f5f0;
+  background: var(--color-surface-warm);
   color: var(--color-text-secondary);
   font-family: inherit;
   white-space: nowrap;
@@ -211,7 +211,7 @@
       背景色をつけて支払いカードと視覚的に区別する
    ============================================================ */
 .el-total {
-  background: #f7f5f0 !important;
+  background: var(--color-surface-warm) !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -291,3 +291,58 @@
   height: 20px;
   flex-shrink: 0;
 }
+/* ============================================================
+   9. カテゴリバッジ（支払いカード下段に表示）
+   ============================================================ */
+
+/* バッジ共通 */
+.expense-category-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* カラーバリエーション */
+.expense-category-badge--green  { background: rgba(14, 168, 122, 0.12); color: #0ea87a; }
+.expense-category-badge--blue   { background: rgba(74, 158, 255, 0.12); color: #4a9eff; }
+.expense-category-badge--purple { background: rgba(167, 139, 250, 0.12); color: #a78bfa; }
+.expense-category-badge--amber  { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.expense-category-badge--pink   { background: rgba(244, 114, 182, 0.12); color: #f472b6; }
+.expense-category-badge--gray   { background: rgba(153, 153, 153, 0.12); color: #666; }
+
+/* ============================================================
+   10. レシート表示（カード・編集モーダル共通）
+   ============================================================ */
+
+/* カード内レシートリンク（サムネイル + テキスト） */
+.expense-receipt-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-soft);
+  text-decoration: none;
+}
+
+.expense-receipt-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.expense-receipt-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* モーダル内のアップロードUI（ProjectDetail.css と共通クラスを使う）
+   .receipt-upload-label / .receipt-preview 等は ProjectDetail.css で定義済み */

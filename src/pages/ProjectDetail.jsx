@@ -22,16 +22,51 @@ import './ProjectDetail.css'
 // ─────────────────────────────────────────────
 
 /**
+ * 支払いカテゴリ一覧。
+ * value は DynamoDB に保存される文字列。label は表示名。color は CSS クラス名に使われる。
+ * フロントのみの変更で追加可能（DBスキーマ変更不要）。
+ */
+export const CATEGORIES = [
+  { value: 'food',          label: '食事',   color: 'green'  },
+  { value: 'transport',     label: '交通',   color: 'blue'   },
+  { value: 'accommodation', label: '宿泊',   color: 'purple' },
+  { value: 'sightseeing',   label: '観光',   color: 'amber'  },
+  { value: 'shopping',      label: '買い物', color: 'pink'   },
+  { value: 'other',         label: 'その他', color: 'gray'   },
+]
+
+/**
+ * 対応通貨一覧。
+ * symbol: 通貨記号（フォーム表示用）
+ * defaultRate: デフォルト為替レートの目安（初期値として表示するだけ、実際は手入力）
+ */
+export const CURRENCIES = [
+  { code: 'JPY', symbol: '¥',  label: '日本円（JPY）',      defaultRate: 1     },
+  { code: 'USD', symbol: '$',  label: '米ドル（USD）',       defaultRate: 150   },
+  { code: 'EUR', symbol: '€',  label: 'ユーロ（EUR）',       defaultRate: 160   },
+  { code: 'KRW', symbol: '₩',  label: '韓国ウォン（KRW）',   defaultRate: 0.11  },
+  { code: 'THB', symbol: '฿',  label: 'タイバーツ（THB）',   defaultRate: 4.2   },
+  { code: 'TWD', symbol: 'NT$', label: '台湾ドル（TWD）',    defaultRate: 4.6   },
+  { code: 'CNY', symbol: '¥',  label: '中国元（CNY）',       defaultRate: 21    },
+  { code: 'GBP', symbol: '£',  label: 'ポンド（GBP）',       defaultRate: 188   },
+  { code: 'AUD', symbol: 'A$', label: 'オーストラリアドル（AUD）', defaultRate: 97 },
+]
+
+/**
  * 支払い追加フォームの初期値。
  * モーダルを閉じるたびにこの値でリセットする。
  */
 const INITIAL_NEW_EXPENSE = {
-  title:         '',
-  amountJPY:     '',
-  splitType:     'ALL',    // 'ALL' | 'CUSTOM'
-  splitUserIds:  [],
-  paymentMethod: 'cash',   // 'cash' | 'card'
-  receiptUrl:    '',
+  title:          '',
+  amountJPY:      '',
+  currency:       'JPY',  // 通貨コード（デフォルトは日本円）
+  originalAmount: '',     // 現地通貨の金額（JPY 以外のとき使用）
+  exchangeRate:   '',     // 為替レート（JPY 以外のとき使用）
+  category:       '',     // カテゴリ（任意）
+  splitType:      'ALL',  // 'ALL' | 'CUSTOM'
+  splitUserIds:   [],
+  paymentMethod:  'cash', // 'cash' | 'card'
+  receiptUrl:     '',
 }
 
 /**
@@ -70,8 +105,9 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
   const [statusChanging,  setStatusChanging]  = useState(false)
 
   // ── 支払い追加モーダル
-  const [showModal,   setShowModal]   = useState(false)
-  const [newExpense,  setNewExpense]  = useState(INITIAL_NEW_EXPENSE)
+  const [showModal,        setShowModal]        = useState(false)
+  const [newExpense,       setNewExpense]       = useState(INITIAL_NEW_EXPENSE)
+  const [receiptUploading, setReceiptUploading] = useState(false)  // レシートアップロード中
 
   // ── メンバー招待モーダル
   const [showInviteModal, setShowInviteModal] = useState(false)
@@ -207,6 +243,43 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
     }))
   }
 
+  /**
+   * レシート画像を S3 にアップロードする。
+   * GET /expenses/receipt/upload-url でプリサインドURL を取得し、
+   * そのURLに直接 PUT することでフロントから S3 に保存する。
+   * @param {File} file
+   * @returns {Promise<string>} アップロード済みの S3 公開URL（receiptUrl として保存）
+   */
+  const uploadReceipt = async (file) => {
+    setReceiptUploading(true)
+    try {
+      // ① プリサインドURL を取得
+      const res = await apiClient.get('/expenses/receipt/upload-url', {
+        params: {
+          fileName:    file.name,
+          contentType: file.type,
+        },
+      })
+      const { uploadUrl, fileUrl } = res.data
+
+      // ② S3 に直接 PUT（axios を使うと Authorization ヘッダーが付いてしまうため fetch を使う）
+      const putRes = await fetch(uploadUrl, {
+        method:  'PUT',
+        headers: { 'Content-Type': file.type },
+        body:    file,
+      })
+
+      // fetch は 4xx/5xx でも例外を投げないため、ステータスを明示的に確認する
+      if (!putRes.ok) {
+        throw new Error(`S3へのアップロードに失敗しました (${putRes.status})`)
+      }
+
+      return fileUrl
+    } finally {
+      setReceiptUploading(false)
+    }
+  }
+
   const createExpense = async () => {
     if (!newExpense.title.trim() || !newExpense.amountJPY) return
 
@@ -216,15 +289,19 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
 
     try {
       await apiClient.post(`/projects/${project.projectId}/expenses`, {
-        operation:     'CREATE',
-        expenseId:     uuidv4(),
-        title:         newExpense.title.trim(),
-        amountJPY:     parseInt(newExpense.amountJPY),
-        splitType:     newExpense.splitType,
+        operation:      'CREATE',
+        expenseId:      uuidv4(),
+        title:          newExpense.title.trim(),
+        amountJPY:      parseInt(newExpense.amountJPY),
+        currency:       newExpense.currency,
+        originalAmount: newExpense.currency !== 'JPY' ? parseFloat(newExpense.originalAmount) : parseInt(newExpense.amountJPY),
+        exchangeRate:   newExpense.currency !== 'JPY' ? parseFloat(newExpense.exchangeRate)   : 1,
+        category:       newExpense.category,
+        splitType:      newExpense.splitType,
         splitUserIds,
-        paymentMethod: newExpense.paymentMethod,
-        receiptUrl:    newExpense.receiptUrl,
-        paidAt:        new Date().toISOString(),
+        paymentMethod:  newExpense.paymentMethod,
+        receiptUrl:     newExpense.receiptUrl,
+        paidAt:         new Date().toISOString(),
       })
       closeExpenseModal()
       // SQS 非同期のため書き込み完了を待ってから再取得
@@ -412,17 +489,124 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
               />
             </div>
 
-            {/* 金額 */}
+            {/* 通貨 + 金額 */}
             <div className="form-group">
-              <label htmlFor="expense-amount">金額（円）</label>
-              <input
-                id="expense-amount"
-                type="number"
-                placeholder="0"
-                value={newExpense.amountJPY}
-                onChange={updateNewExpense('amountJPY')}
-                min="1"
-              />
+              <label htmlFor="expense-currency">通貨</label>
+              <select
+                id="expense-currency"
+                value={newExpense.currency}
+                onChange={(e) => {
+                  const cur = CURRENCIES.find((c) => c.code === e.target.value)
+                  setNewExpense((prev) => ({
+                    ...prev,
+                    currency:       cur.code,
+                    originalAmount: '',
+                    exchangeRate:   cur.code !== 'JPY' ? String(cur.defaultRate) : '',
+                    amountJPY:      cur.code === 'JPY' ? prev.amountJPY : '',
+                  }))
+                }}
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 日本円の場合：直接入力 */}
+            {newExpense.currency === 'JPY' ? (
+              <div className="form-group">
+                <label htmlFor="expense-amount">金額（円）</label>
+                <input
+                  id="expense-amount"
+                  type="number"
+                  placeholder="0"
+                  value={newExpense.amountJPY}
+                  onChange={updateNewExpense('amountJPY')}
+                  min="1"
+                />
+              </div>
+            ) : (
+              /* 外貨の場合：現地金額 + 為替レート → 円換算プレビュー */
+              <>
+                <div className="form-group">
+                  <label htmlFor="expense-original-amount">
+                    金額（{newExpense.currency}）
+                  </label>
+                  <div className="currency-amount-row">
+                    <span className="currency-symbol">
+                      {CURRENCIES.find((c) => c.code === newExpense.currency)?.symbol}
+                    </span>
+                    <input
+                      id="expense-original-amount"
+                      type="number"
+                      placeholder="0"
+                      value={newExpense.originalAmount}
+                      min="0"
+                      step="any"
+                      onChange={(e) => {
+                        const orig = parseFloat(e.target.value) || 0
+                        const rate = parseFloat(newExpense.exchangeRate) || 0
+                        setNewExpense((prev) => ({
+                          ...prev,
+                          originalAmount: e.target.value,
+                          amountJPY:      rate ? String(Math.round(orig * rate)) : '',
+                        }))
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="expense-rate">
+                    為替レート（1{newExpense.currency} = ?円）
+                  </label>
+                  <input
+                    id="expense-rate"
+                    type="number"
+                    placeholder="例: 150"
+                    value={newExpense.exchangeRate}
+                    min="0"
+                    step="any"
+                    onChange={(e) => {
+                      const rate = parseFloat(e.target.value) || 0
+                      const orig = parseFloat(newExpense.originalAmount) || 0
+                      setNewExpense((prev) => ({
+                        ...prev,
+                        exchangeRate: e.target.value,
+                        amountJPY:    rate ? String(Math.round(orig * rate)) : '',
+                      }))
+                    }}
+                  />
+                </div>
+                {/* 円換算プレビュー */}
+                {newExpense.amountJPY && (
+                  <div className="currency-preview">
+                    <span className="currency-preview-label">円換算（概算）</span>
+                    <span className="currency-preview-amount">
+                      ¥{parseInt(newExpense.amountJPY).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* カテゴリ（任意） */}
+            <div className="form-group">
+              <label htmlFor="expense-category">カテゴリ（任意）</label>
+              <div className="category-select">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    className={`category-chip category-chip--${cat.color} ${newExpense.category === cat.value ? 'category-chip--active' : ''}`}
+                    onClick={() => setNewExpense((prev) => ({
+                      ...prev,
+                      category: prev.category === cat.value ? '' : cat.value,
+                    }))}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* 支払い方法 */}
@@ -500,10 +684,54 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
               </div>
             )}
 
+            {/* レシート写真（任意） */}
+            <div className="form-group">
+              <label>レシート写真（任意）</label>
+              <label className="receipt-upload-label">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="receipt-upload-input"
+                  disabled={receiptUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    try {
+                      const url = await uploadReceipt(file)
+                      setNewExpense((prev) => ({ ...prev, receiptUrl: url }))
+                    } catch {
+                      setError('レシートのアップロードに失敗しました')
+                    }
+                  }}
+                />
+                <span className={`receipt-upload-btn ${receiptUploading ? 'receipt-upload-btn--loading' : ''}`}>
+                  {receiptUploading ? 'アップロード中...' : newExpense.receiptUrl ? '写真を変更' : '写真を選択'}
+                </span>
+              </label>
+              {/* アップロード済みサムネイル */}
+              {newExpense.receiptUrl && (
+                <div className="receipt-preview">
+                  <img
+                    src={newExpense.receiptUrl}
+                    alt="レシートプレビュー"
+                    className="receipt-preview-img"
+                  />
+                  <button
+                    type="button"
+                    className="receipt-remove-btn"
+                    onClick={() => setNewExpense((prev) => ({ ...prev, receiptUrl: '' }))}
+                    aria-label="写真を削除"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               className="primary-button pd-modal-submit-btn"
               onClick={createExpense}
-              disabled={!newExpense.title.trim() || !newExpense.amountJPY}
+              disabled={!newExpense.title.trim() || !newExpense.amountJPY || receiptUploading}
             >
               追加する
             </button>
@@ -560,7 +788,7 @@ export default function ProjectDetail({ apiClient, project, currentUserId, onBac
               <p className="invite-block-desc">
                 登録済みのメールアドレスを入力してください
               </p>
-              <div className="form-group" style={{ marginBottom: '10px' }}>
+              <div className="form-group invite-form-group">
                 <input
                   type="email"
                   placeholder="example@email.com"

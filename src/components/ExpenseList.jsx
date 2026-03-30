@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { CATEGORIES, CURRENCIES } from '../pages/ProjectDetail'
 import './ExpenseList.css'
 
 // ─────────────────────────────────────────────
@@ -64,9 +65,10 @@ export default function ExpenseList({
   isProjectClosed = false,
 }) {
   // ── 編集モーダル
-  const [editTarget, setEditTarget] = useState(null)
-  const [editForm,   setEditForm]   = useState({})
-  const [saving,     setSaving]     = useState(false)
+  const [editTarget,       setEditTarget]       = useState(null)
+  const [editForm,         setEditForm]         = useState({})
+  const [saving,           setSaving]           = useState(false)
+  const [receiptUploading, setReceiptUploading] = useState(false)  // レシートアップロード中
 
   // ── 削除処理中の expenseId（連打防止）
   const [deletingId, setDeletingId] = useState(null)
@@ -90,15 +92,49 @@ export default function ExpenseList({
   // 編集モーダル操作
   // ─────────────────────────────────────────────
 
+  /**
+   * レシート画像を S3 にアップロードする（ProjectDetail.jsx と同一ロジック）。
+   * @param {File} file
+   * @returns {Promise<string>} アップロード済みの fileUrl
+   */
+  const uploadReceipt = async (file) => {
+    setReceiptUploading(true)
+    try {
+      const res = await apiClient.get('/expenses/receipt/upload-url', {
+        params: { fileName: file.name, contentType: file.type },
+      })
+      const { uploadUrl, fileUrl } = res.data
+      const putRes = await fetch(uploadUrl, {
+        method:  'PUT',
+        headers: { 'Content-Type': file.type },
+        body:    file,
+      })
+
+      // fetch は 4xx/5xx でも例外を投げないため、ステータスを明示的に確認する
+      if (!putRes.ok) {
+        throw new Error(`S3へのアップロードに失敗しました (${putRes.status})`)
+      }
+
+      return fileUrl
+    } finally {
+      setReceiptUploading(false)
+    }
+  }
+
   const openEdit = (expense) => {
     setError('')
     setEditTarget(expense)
     setEditForm({
-      title:         expense.title,
-      amountJPY:     expense.amountJPY,
-      splitType:     expense.splitType,
-      splitUserIds:  expense.splitUserIds || [],
-      paymentMethod: expense.paymentMethod,
+      title:          expense.title,
+      amountJPY:      expense.amountJPY,
+      currency:       expense.currency       || 'JPY',
+      originalAmount: expense.originalAmount || '',
+      exchangeRate:   expense.exchangeRate   || '',
+      category:       expense.category       || '',
+      splitType:      expense.splitType,
+      splitUserIds:   expense.splitUserIds   || [],
+      paymentMethod:  expense.paymentMethod,
+      receiptUrl:     expense.receiptUrl     || '',
     })
   }
 
@@ -135,15 +171,20 @@ export default function ExpenseList({
 
     try {
       await apiClient.put(`/expenses/${editTarget.expenseId}`, {
-        operation:     'UPDATE',
-        expenseId:     editTarget.expenseId,
+        operation:      'UPDATE',
+        expenseId:      editTarget.expenseId,
         projectId,
-        title:         editForm.title.trim(),
-        amountJPY:     parseInt(editForm.amountJPY),
-        splitType:     editForm.splitType,
+        title:          editForm.title.trim(),
+        amountJPY:      parseInt(editForm.amountJPY),
+        currency:       editForm.currency      || 'JPY',
+        originalAmount: editForm.currency !== 'JPY' ? parseFloat(editForm.originalAmount) : parseInt(editForm.amountJPY),
+        exchangeRate:   editForm.currency !== 'JPY' ? parseFloat(editForm.exchangeRate)   : 1,
+        category:       editForm.category,
+        splitType:      editForm.splitType,
         splitUserIds,
-        paymentMethod: editForm.paymentMethod,
-        paidAt:        editTarget.paidAt,
+        paymentMethod:  editForm.paymentMethod,
+        receiptUrl:     editForm.receiptUrl    || '',
+        paidAt:         editTarget.paidAt,
       })
       closeEdit()
       setTimeout(onRefresh, REFETCH_DELAY_MS)
@@ -211,6 +252,9 @@ export default function ExpenseList({
         const payerName   = getName(members, expense.payerId)
         const payerInitial = payerName.slice(0, 1).toUpperCase()
 
+        // カテゴリ情報（バッジ表示用）
+        const categoryInfo = CATEGORIES.find((c) => c.value === expense.category) ?? null
+
         return (
           <div key={expense.expenseId} className="expense-item card">
 
@@ -227,19 +271,31 @@ export default function ExpenseList({
                 </div>
               </div>
 
-              {/* 右：合計金額 + 1人あたり */}
+              {/* 右：合計金額 + 1人あたり（外貨の場合は現地金額も表示） */}
               <div className="expense-top-right">
                 <div className="expense-amount">
                   ¥{expense.amountJPY.toLocaleString()}
                 </div>
+                {expense.currency && expense.currency !== 'JPY' && expense.originalAmount && (
+                  <div className="expense-original-amount">
+                    {CURRENCIES.find((c) => c.code === expense.currency)?.symbol}
+                    {Number(expense.originalAmount).toLocaleString()}
+                  </div>
+                )}
                 <div className="expense-per">
                   1人 ¥{perPerson.toLocaleString()}
                 </div>
               </div>
             </div>
 
-            {/* ── 下段：請求先バッジ + アクション */}
+            {/* ── 下段：カテゴリ + 請求先バッジ + アクション */}
             <div className="expense-bottom">
+              {/* カテゴリバッジ（保存済みカテゴリがある場合のみ表示） */}
+              {categoryInfo && (
+                <span className={`expense-category-badge expense-category-badge--${categoryInfo.color}`}>
+                  {categoryInfo.label}
+                </span>
+              )}
               {/* 請求先バッジ */}
               <span className={`expense-split-badge ${expense.splitType === 'ALL' ? 'expense-split-badge--all' : 'expense-split-badge--custom'}`}>
                 {expense.splitType === 'ALL' ? '全員' : `${splitCount}人`}
@@ -267,6 +323,24 @@ export default function ExpenseList({
                 </div>
               )}
             </div>
+
+            {/* レシート写真サムネイル（設定されている場合のみ） */}
+            {expense.receiptUrl && (
+              <a
+                href={expense.receiptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="expense-receipt-link"
+                aria-label="レシートを拡大表示"
+              >
+                <img
+                  src={expense.receiptUrl}
+                  alt="レシート"
+                  className="expense-receipt-thumb"
+                />
+                <span className="expense-receipt-label">レシートを見る</span>
+              </a>
+            )}
 
           </div>
         )
@@ -315,15 +389,120 @@ export default function ExpenseList({
               />
             </div>
 
+            {/* 通貨 */}
             <div className="form-group">
-              <label htmlFor="edit-amount">金額（円）</label>
-              <input
-                id="edit-amount"
-                type="number"
-                value={editForm.amountJPY}
-                onChange={updateEditForm('amountJPY')}
-                min="1"
-              />
+              <label htmlFor="edit-currency">通貨</label>
+              <select
+                id="edit-currency"
+                value={editForm.currency || 'JPY'}
+                onChange={(e) => {
+                  const cur = CURRENCIES.find((c) => c.code === e.target.value)
+                  setEditForm((prev) => ({
+                    ...prev,
+                    currency:       cur.code,
+                    originalAmount: '',
+                    exchangeRate:   cur.code !== 'JPY' ? String(cur.defaultRate) : '',
+                    amountJPY:      cur.code === 'JPY' ? prev.amountJPY : '',
+                  }))
+                }}
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* 金額（通貨に応じて切り替え） */}
+            {(!editForm.currency || editForm.currency === 'JPY') ? (
+              <div className="form-group">
+                <label htmlFor="edit-amount">金額（円）</label>
+                <input
+                  id="edit-amount"
+                  type="number"
+                  value={editForm.amountJPY}
+                  onChange={updateEditForm('amountJPY')}
+                  min="1"
+                />
+              </div>
+            ) : (
+              <>
+                <div className="form-group">
+                  <label htmlFor="edit-original-amount">
+                    金額（{editForm.currency}）
+                  </label>
+                  <div className="currency-amount-row">
+                    <span className="currency-symbol">
+                      {CURRENCIES.find((c) => c.code === editForm.currency)?.symbol}
+                    </span>
+                    <input
+                      id="edit-original-amount"
+                      type="number"
+                      placeholder="0"
+                      value={editForm.originalAmount}
+                      min="0"
+                      step="any"
+                      onChange={(e) => {
+                        const orig = parseFloat(e.target.value) || 0
+                        const rate = parseFloat(editForm.exchangeRate) || 0
+                        setEditForm((prev) => ({
+                          ...prev,
+                          originalAmount: e.target.value,
+                          amountJPY:      rate ? Math.round(orig * rate) : prev.amountJPY,
+                        }))
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-rate">
+                    為替レート（1{editForm.currency} = ?円）
+                  </label>
+                  <input
+                    id="edit-rate"
+                    type="number"
+                    placeholder="例: 150"
+                    value={editForm.exchangeRate}
+                    min="0"
+                    step="any"
+                    onChange={(e) => {
+                      const rate = parseFloat(e.target.value) || 0
+                      const orig = parseFloat(editForm.originalAmount) || 0
+                      setEditForm((prev) => ({
+                        ...prev,
+                        exchangeRate: e.target.value,
+                        amountJPY:    rate ? Math.round(orig * rate) : prev.amountJPY,
+                      }))
+                    }}
+                  />
+                </div>
+                {editForm.amountJPY && (
+                  <div className="currency-preview">
+                    <span className="currency-preview-label">円換算（概算）</span>
+                    <span className="currency-preview-amount">
+                      ¥{parseInt(editForm.amountJPY).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="form-group">
+              <label>カテゴリ（任意）</label>
+              <div className="category-select">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    className={`category-chip category-chip--${cat.color} ${editForm.category === cat.value ? 'category-chip--active' : ''}`}
+                    onClick={() => setEditForm((prev) => ({
+                      ...prev,
+                      category: prev.category === cat.value ? '' : cat.value,
+                    }))}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="form-group">
@@ -386,10 +565,53 @@ export default function ExpenseList({
               )}
             </div>
 
+            {/* レシート写真（任意） */}
+            <div className="form-group">
+              <label>レシート写真（任意）</label>
+              <label className="receipt-upload-label">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="receipt-upload-input"
+                  disabled={receiptUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    try {
+                      const url = await uploadReceipt(file)
+                      setEditForm((prev) => ({ ...prev, receiptUrl: url }))
+                    } catch {
+                      setError('レシートのアップロードに失敗しました')
+                    }
+                  }}
+                />
+                <span className={`receipt-upload-btn ${receiptUploading ? 'receipt-upload-btn--loading' : ''}`}>
+                  {receiptUploading ? 'アップロード中...' : editForm.receiptUrl ? '写真を変更' : '写真を選択'}
+                </span>
+              </label>
+              {editForm.receiptUrl && (
+                <div className="receipt-preview">
+                  <img
+                    src={editForm.receiptUrl}
+                    alt="レシートプレビュー"
+                    className="receipt-preview-img"
+                  />
+                  <button
+                    type="button"
+                    className="receipt-remove-btn"
+                    onClick={() => setEditForm((prev) => ({ ...prev, receiptUrl: '' }))}
+                    aria-label="写真を削除"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button
               className="primary-button el-modal-save-btn"
               onClick={handleUpdate}
-              disabled={saving || !editForm.title?.trim() || !editForm.amountJPY}
+              disabled={saving || receiptUploading || !editForm.title?.trim() || !editForm.amountJPY}
             >
               {saving ? '保存中...' : '保存する'}
             </button>
